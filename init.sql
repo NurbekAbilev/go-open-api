@@ -1,12 +1,12 @@
-CREATE TABLE postgres.public.Position (
-    ID SERIAL PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Salary NUMERIC(10, 2) NOT NULL
+CREATE TABLE position (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    salary NUMERIC(10, 2) NOT NULL
 );
 
-CREATE TABLE postgres.public.Employee (
-    ID SERIAL PRIMARY KEY,
-    FirstName VARCHAR(255) NOT NULL,
-    LastName VARCHAR(255) NOT NULL,
-    PositionID INT REFERENCES Position(ID)
+CREATE TABLE employee (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    position_id INT REFERENCES position(id)
 );
