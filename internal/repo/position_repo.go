@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -25,3 +26,16 @@ func (r PositionRepo) CreatePosition(db *sql.DB, p Position) error {
 
 	return nil
 }
+
+func ValidateAddPositionStruct(p Position) error {
+	if p.Name == nil || *p.Name == "" {
+		return errors.New("invalid name")
+	}
+
+	if p.Salary == nil || *p.Salary < 0 {
+		return errors.New("invalid salary")
+	}
+
+	return nil
+}
+

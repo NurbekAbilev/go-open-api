@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -27,18 +26,6 @@ func (ph PositionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Invalid method")
 }
 
-func validateAddPositionStruct(p repo.Position) error {
-	if p.Name == nil || *p.Name == "" {
-		return errors.New("invalid name")
-	}
-
-	if p.Salary == nil || *p.Salary < 0 {
-		return errors.New("invalid salary")
-	}
-
-	return nil
-}
-
 func handleAddPosition(w http.ResponseWriter, r *http.Request, di Injector) {
 	p := repo.Position{}
 
@@ -48,7 +35,7 @@ func handleAddPosition(w http.ResponseWriter, r *http.Request, di Injector) {
 		return
 	}
 
-	err = validateAddPositionStruct(p)
+	err = repo.ValidateAddPositionStruct(p)
 	if err != nil {
 		fmt.Fprintln(w, err)
 	}
