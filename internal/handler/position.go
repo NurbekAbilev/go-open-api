@@ -3,8 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
+	resp "github.com/nurbekabilev/go-open-api/internal/handler/web/response"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
 
@@ -13,17 +17,61 @@ type PositionHandler struct {
 }
 
 func (ph PositionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Position handler:")
-	if r.Method == "POST" {
+	id, idOk := getIdFromURI(r.RequestURI)
+
+	switch r.Method {
+	case "GET":
+		// /positions/{id}
+		if idOk {
+			handleGetPosition(w, r, ph.DI, id)
+			return
+		}
+
+		// /positions
+		handleGetAllPositions(w, r, ph.DI)
+	case "POST":
 		handleAddPosition(w, r, ph.DI)
-		return
+	case "PUT":
+		if idOk {
+			handleUpdatePosition(w, r, ph.DI, id)
+		}
+	default:
+		fmt.Fprint(w, "Invalid method")
 	}
-	if r.Method == "GET" {
-		handleGetOnePosition(w, r, ph.DI)
+}
+
+func getIdFromURI(uri string) (id int, ok bool) {
+	uriParts := strings.Split(uri, "/")
+	if len(uriParts) < 4 {
+		return 0, false
+	}
+	idPart := uriParts[4]
+
+	id, err := strconv.Atoi(idPart)
+	if err != nil {
+		return 0, false
+	}
+
+	return id, true
+}
+
+func handleGetPosition(w http.ResponseWriter, r *http.Request, di Injector, id int) {
+	repo := repo.PositionRepo{}
+	pos, err := repo.GetPositionById(di.DB, id)
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
-	fmt.Fprint(w, "Invalid method")
+	resp.WriteJsonResponse(w, false, "", pos)
+}
+
+func handleGetAllPositions(w http.ResponseWriter, r *http.Request, di Injector) {
+	fmt.Fprintf(w, "handleGetPosition")
+}
+
+func handleUpdatePosition(w http.ResponseWriter, r *http.Request, di Injector, id int) {
+	fmt.Fprintf(w, "handleGetPosition ", id)
 }
 
 func handleAddPosition(w http.ResponseWriter, r *http.Request, di Injector) {
@@ -48,7 +96,4 @@ func handleAddPosition(w http.ResponseWriter, r *http.Request, di Injector) {
 	}
 
 	fmt.Fprintf(w, "record created succesfully")
-}
-
-func handleGetOnePosition(w http.ResponseWriter, r *http.Request, di Injector) {
 }

@@ -1,7 +1,7 @@
 CREATE TABLE position (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    salary NUMERIC(10, 2) NOT NULL
+    salary INT NOT NULL
 );
 
 CREATE TABLE employee (

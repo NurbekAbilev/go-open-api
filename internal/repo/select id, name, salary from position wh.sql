@@ -1,0 +1,1 @@
+select id, name, salary from position where id = 5
