@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/handler"
 )
 
@@ -32,16 +34,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	app.InitDI(db)
 
-	di := handler.Injector{
-		DB: db,
-	}
-
-	positionHandler := handler.PositionHandler{
-		DI: di,
-	}
-
-	http.Handle("/api/v1/positions/", positionHandler)
+	r := mux.NewRouter()
+	r.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
+	http.Handle("/", r)
 
 	fmt.Println("Listening port:", port)
 	http.ListenAndServe(":8080", nil)
