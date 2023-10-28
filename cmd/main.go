@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,27 +8,14 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/nurbekabilev/go-open-api/internal/app"
+	"github.com/nurbekabilev/go-open-api/internal/db"
 	"github.com/nurbekabilev/go-open-api/internal/handler"
 )
 
-const port = "8080"
-
-func initDb(connstr string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", connstr)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
+const host = ":8080"
 
 func main() {
-	db, err := initDb("postgres://postgres:example@localhost:5432/postgres?sslmode=disable")
+	db, err := db.InitDB("postgres://postgres:example@localhost:5432/postgres?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,6 +26,6 @@ func main() {
 	r.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
 	http.Handle("/", r)
 
-	fmt.Println("Listening port:", port)
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("Listening to the host:port :", host)
+	http.ListenAndServe(host, nil)
 }
