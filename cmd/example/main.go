@@ -1,25 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
 
-func example() (a, b int) {
-	// c := 12
-	// d := 10
-
-	return
-}
+	"github.com/golang-jwt/jwt/v5"
+)
 
 func main() {
-	// re := regexp.MustCompile(`/numbers/(\d+)`)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"client_id": "bar",
+		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	})
 
-	// // Extract the integer from the URL path
-	// // match := re.FindStringSubmatch("localhost/numbers/123")
-	// // match := re.FindString("localhost/numbers/123")
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString([]byte("laksjdfoiwaejfoiwejf"))
 
-	// match := re.FindStringSubmatch("localhost/numbers/123")
-
-	// fmt.Println(match)
-	a, b := example()
-	fmt.Println(a, b)
-
+	fmt.Println(tokenString, err)
 }
