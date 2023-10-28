@@ -4,3 +4,4 @@ Project for learning Open Api specs
 - [ ] Create Auth/Middelware
 - [ ] Database migration    
 - [ ] Host swagger UI
+- [ ] Use ENV file
