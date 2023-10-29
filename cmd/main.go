@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
+	"runtime"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -16,15 +18,20 @@ import (
 
 const host = ":8080"
 
+func getProjectRoot() string {
+	_, b, _, _ := runtime.Caller(0)
+	return path.Join(path.Dir(path.Dir(b)))
+}
+
 func main() {
-	err := godotenv.Load("../.env")
+	rootPath := getProjectRoot()
+	
+	err := godotenv.Load(rootPath + "/.env")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(os.Getenv("JWT_KEY"))
-
-	db, err := db.InitDB("postgres://postgres:example@localhost:5432/postgres?sslmode=disable")
+	db, err := db.InitDB(os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
