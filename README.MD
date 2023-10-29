@@ -5,3 +5,8 @@ Project for learning Open Api specs
 - [ ] Database migration    
 - [ ] Host swagger UI
 - [x] Use ENV file
+
+## Useful links
+- https://github.com/deepmap/oapi-codegen
+- https://github.com/getkin/kin-openapi
+- https://github.com/swaggest/swgui
