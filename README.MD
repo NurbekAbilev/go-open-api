@@ -5,9 +5,10 @@ Project for learning Open Api specs
 - [ ] Database migration    
 - [ ] Host swagger UI
 - [x] Use ENV file
-
-- [ ] Create CLI tool to migrate
-- [ ] Create CLI 
+- [ ] Change Database Connection to PGX [link](https://github.com/jackc/pgx)
+- [ ] Add indexes to firstname, lastname on employees
+- [ ] Add updated_at created_at columns
+- [ ] Use make Target [link](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
 
 ## Useful links Open API
 - https://github.com/deepmap/oapi-codegen
