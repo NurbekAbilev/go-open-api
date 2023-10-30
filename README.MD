@@ -9,11 +9,10 @@ Project for learning Open Api specs
 - [ ] Create CLI tool to migrate
 - [ ] Create CLI 
 
-## Useful links
+## Useful links Open API
 - https://github.com/deepmap/oapi-codegen
 - https://github.com/getkin/kin-openapi
 - https://github.com/swaggest/swgui
-
 
 ## Migrations
 - Create migration 
