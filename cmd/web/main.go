@@ -18,14 +18,14 @@ import (
 
 const host = ":8080"
 
-func getProjectRoot() string {
+func rootPath() string {
 	_, b, _, _ := runtime.Caller(0)
-	return path.Join(path.Dir(path.Dir(b)))
+	return path.Join(path.Dir(b))
 }
 
 func main() {
-	rootPath := getProjectRoot()
-	
+	rootPath := rootPath() + "/../.."
+
 	err := godotenv.Load(rootPath + "/.env")
 	if err != nil {
 		log.Fatal(err)
