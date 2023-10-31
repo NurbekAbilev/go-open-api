@@ -1,4 +1,4 @@
-Project for learning Open Api specs
+# Project for learning purposes
 
 - [x] Change to MUX
 - [ ] Create Auth/Middelware
