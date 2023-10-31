@@ -23,3 +23,9 @@
 ```sh
 make create_migration name=${migration_name}
 ```
+
+## List of questions
+
+1. Test folder vs name_test
+2. Use .env vs use os env
+3. How to create make with parameters
