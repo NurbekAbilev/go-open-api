@@ -14,7 +14,7 @@ type Position struct {
 }
 
 type CreatePositionRepo interface {
-	CreatePosition(ctx context.Context, p Position) error
+	CreatePosition(ctx context.Context, p Position) (id int, err error)
 }
 
 type GetOnePositionRepo interface {
@@ -31,13 +31,21 @@ func NewPositionRepo(db *sql.DB) PositionRepo {
 	}
 }
 
-func (r PositionRepo) CreatePosition(ctx context.Context, p Position) error {
-	_, err := r.db.ExecContext(ctx, "insert into position (name, salary) values ($1, $2)", p.Name, p.Salary)
+func (r PositionRepo) CreatePosition(ctx context.Context, p Position) (id int, err error) {
+
+	query := `
+		insert into positions(name, salary) 
+			values ($1, $2) 
+		returning id
+	`
+
+	var lastInsertId int
+	err = r.db.QueryRowContext(ctx, query, p.Name, p.Salary).Scan(&lastInsertId)
 	if err != nil {
-		return fmt.Errorf("could not create pos: %s", err)
+		return 0, fmt.Errorf("could not create position: %s", err)
 	}
 
-	return nil
+	return lastInsertId, nil
 }
 
 // func (repo PositionRepo) GetPositionById(db *sql.DB, id int) (*Position, error) {
