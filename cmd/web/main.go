@@ -43,7 +43,9 @@ func main() {
 	r.HandleFunc("/api/v1/auth", handler.HandleAuthEmployee).Methods("POST")
 	r.HandleFunc("/api/v1/auth/validate", handler.ValidateAuthEmployee).Methods("POST")
 
-	http.Handle("/", r)
+	r.HandleFunc("/api/v1/positions", ).Methods("POST")
+
+
 
 	fmt.Println("Listening to the:", host)
 	http.ListenAndServe(host, nil)
