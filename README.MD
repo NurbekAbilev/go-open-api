@@ -11,6 +11,7 @@
 - [ ] Use make Target [link](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
 - [ ] Update created_at updated_at columns after table change
 - [ ] Add support for pagination
+- [ ] Add error handler
 
 ## Useful links Open API
 - https://github.com/deepmap/oapi-codegen
