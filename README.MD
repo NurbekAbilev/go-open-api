@@ -3,7 +3,7 @@
 - [x] Change to MUX
 - [ ] Create Auth/Middelware
 - [ ] Database migration    
-- [ ] Host swagger UI
+- [x] Host swagger UI
 - [x] Use ENV file
 - [ ] Change Database Connection to PGX [link](https://github.com/jackc/pgx)
 - [ ] Add indexes to firstname, lastname on employees
