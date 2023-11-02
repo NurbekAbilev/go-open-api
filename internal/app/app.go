@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"path"
-	"runtime"
 
 	"github.com/joho/godotenv"
+	"github.com/nurbekabilev/go-open-api/internal/fs"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
 
@@ -23,30 +22,29 @@ func DI() *inj {
 
 func InitApp() (closer func()) {
 	InitConfig()
-
-	db, dbCloser := InitDatabase()
-
+	db := InitDatabase()
 	InitDI(db)
 
 	return func() {
-		dbCloser()
+		log.Println("Clsoing ....")
+		db.Close()
 	}
 }
 
 func InitConfig() {
-	rootPath := rootPath() + "/../.."
+	rootPath := fs.RootPath()
 	err := godotenv.Load(rootPath + "/.env")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func InitDatabase() (db *sql.DB, closer func()) {
+func InitDatabase() (db *sql.DB) {
 	db, err := initDB(os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db, func() { db.Close() }
+	return db
 }
 
 func InitDI(db *sql.DB) {
@@ -67,9 +65,4 @@ func initDB(connstr string) (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-func rootPath() string {
-	_, b, _, _ := runtime.Caller(0)
-	return path.Join(path.Dir(b))
 }
