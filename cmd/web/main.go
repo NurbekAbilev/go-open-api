@@ -16,7 +16,8 @@ import (
 const host = ":8080"
 
 func main() {
-	app.InitApp()
+	closer := app.InitApp()
+	defer closer()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
