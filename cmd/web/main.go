@@ -20,14 +20,20 @@ func main() {
 	defer closer()
 
 	r := mux.NewRouter()
+
+	// Positions
 	r.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
 
+	// Employees @todo
+
+	// Auth routes
 	r.HandleFunc("/api/v1/auth", handler.HandleAuthEmployee).Methods("POST")
 	r.HandleFunc("/api/v1/auth/validate", handler.ValidateAuthEmployee).Methods("POST")
 
 	// Host swagger-ui
 	http.Handle("/api/swagger/", http.StripPrefix("/api/swagger", swaggerui.Handler(sw.GetSwaggerYml())))
 
+	// Setup handler
 	http.Handle("/", r)
 
 	fmt.Println("Listening to the:", host)
