@@ -12,6 +12,18 @@ type Response struct {
 	Data     any    `json:"data"`
 }
 
+type ResponseGeneric[T any] struct {
+	Code     int    `json:"code"`
+	ErrorMsg string `json:"error"`
+	Data     any    `json:"data"`
+}
+
+// type Response struct {
+// 	Code     int    `json:"code"`
+// 	ErrorMsg string `json:"error"`
+// 	Data     any    `json:"data"`
+// }
+
 func NewResponse(code int, errorMsg string, data any) Response {
 	return Response{
 		Code:     code,

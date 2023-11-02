@@ -12,6 +12,7 @@
 - [ ] Update created_at updated_at columns after table change
 - [ ] Add support for pagination
 - [ ] Add error handler
+- [ ] Write Integrations/HTTP tests ([] make them seperate from unit)
 
 ## Useful links Open API
 - https://github.com/deepmap/oapi-codegen
