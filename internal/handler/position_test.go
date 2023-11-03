@@ -45,13 +45,7 @@ func TestCreatePosition(t *testing.T) {
 		t.Errorf("expected error to be non nil got %v", err)
 	}
 
-	type PositionResponse struct {
-		ID     int    `json:"id"`
-		Name   string `json:"name"`
-		Salary int    `json:"salary"`
-	}
-
-	responseStruct := response.ResponseGeneric[PositionResponse]{}
+	responseStruct := response.Response{}
 
 	err = json.Unmarshal(data, &responseStruct)
 	if err != nil {
@@ -64,7 +58,7 @@ func TestCreatePosition(t *testing.T) {
 		vjson.Object("data", vjson.NewSchema(
 			vjson.Integer("id").Required(),
 			vjson.String("name").Required(),
-			vjson.Integer("salary1").Required(),
+			vjson.Integer("salary").Required(),
 		)).Required(),
 	)
 
