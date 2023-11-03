@@ -1,20 +1,20 @@
 # Project for learning purposes
 
 ## General
-- [✔️] Use ENV file
-- [✔️] Change to MUX
+- [x] Use ENV file
+- [x] Change to MUX
 - [ ] Add error handler
 - [ ] Add support for pagination
 - [ ] Use make Target [link](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
 
 ## Database
-- [✔️] Database migration    
-- [✔️] Add indexes to firstname, lastname on employees
+- [x] Database migration    
+- [x] Add indexes to firstname, lastname on employees
 - [ ] Change Database Connection to PGX [link](https://github.com/jackc/pgx)
 - [ ] Update updated_at created_at columns
 
 ## Open Api
-- [✔️] Host swagger UI
+- [x] Host swagger UI
 
 ## Testing
 - [ ] Write Integrations/HTTP tests ([] make them seperate from unit)
