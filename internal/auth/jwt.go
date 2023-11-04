@@ -14,7 +14,6 @@ type AuthEmployee struct {
 }
 
 type CustomAuthClaims struct {
-	Name string `json:"name"`
 	jwt.RegisteredClaims
 }
 
@@ -22,7 +21,7 @@ type JWTAuthProvider struct {
 	currentUser AbstractUser
 }
 
-func (a *JWTAuthProvider) Authorize(cred Credentials) (authToken string, err error) {
+func (a *JWTAuthProvider) GenerateToken(cred Credentials) (authToken string, err error) {
 	token, err := generateSignedJWT(cred)
 	if err != nil {
 		return "", err
@@ -60,7 +59,6 @@ func generateSignedJWT(cred Credentials) (signedString string, err error) {
 	secretKey := os.Getenv("JWT_KEY")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomAuthClaims{
-		Name: cred.Name,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

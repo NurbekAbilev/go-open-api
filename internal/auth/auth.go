@@ -3,12 +3,9 @@ package auth
 import "errors"
 
 type Credentials struct {
-	// username string
-	// password string
-
 	// todo temporary solution
-	Name string
-	ID   int
+	Login string
+	ID    string
 }
 
 var (
@@ -21,7 +18,7 @@ type AbstractUser interface {
 }
 
 type AuthProvider interface {
-	Authorize(cred Credentials) (authToken string, err error)
+	GenerateToken(cred Credentials) (authToken string, err error)
 	CheckAuth(authToken string) (err error)
 	GetAuthUser() AbstractUser
 }

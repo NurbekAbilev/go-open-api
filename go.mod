@@ -25,4 +25,5 @@ require (
 	github.com/flowchartsman/swaggerui v0.0.0-20221017034628-909ed4f3701b
 	github.com/miladibra10/vjson v0.3.0
 	github.com/vearutop/statigz v1.4.0 // indirect
+	golang.org/x/crypto v0.14.0
 )

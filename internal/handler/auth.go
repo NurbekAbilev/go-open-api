@@ -4,17 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
 	"github.com/nurbekabilev/go-open-api/internal/handler/response"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func HandleAuthEmployee(w http.ResponseWriter, r *http.Request) {
+func HandleAuth(w http.ResponseWriter, r *http.Request) {
 	// @todo need to check login/password instead of just passing ID field
 	di := app.DI()
 	ctx := r.Context()
@@ -33,12 +32,24 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {
-	log.Println("Sign up")
 	empl := repo.Employee{}
 	err := json.NewDecoder(r.Body).Decode(&empl)
 	if err != nil {
 		return response.NewBadRequestErrorResponse(err.Error())
 	}
+
+	err = validateEmployee(empl)
+	if err != nil {
+		return response.NewBadRequestErrorResponse(err.Error())
+	}
+
+	const cost = 8
+	hash, err := bcrypt.GenerateFromPassword([]byte(empl.Password), cost)
+	if err != nil {
+		return response.NewServerError("server error")
+	}
+
+	empl.Password = string(hash)
 
 	_, err = app.DI().EmployeeRepo.CreateEmployee(ctx, empl)
 	if err != nil {
@@ -49,9 +60,6 @@ func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) respons
 }
 
 func validateEmployee(empl repo.Employee) error {
-	if empl.ID == "" {
-		return errors.New("invalid id")
-	}
 	if empl.FirstName == "" {
 		return errors.New("invalid first_name")
 	}
@@ -72,23 +80,34 @@ func validateEmployee(empl repo.Employee) error {
 }
 
 func AuthorizeEmployee(ctx context.Context, w http.ResponseWriter, r *http.Request, authProvider auth.AuthProvider) response.Response {
-	idStr := r.Header.Get("X-Auth-ID")
-
-	if idStr == "" {
-		return response.NewBadRequestErrorResponse("ID not provided/Invalid credentials")
+	type requestBody struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
 	}
 
-	id, err := strconv.Atoi(idStr)
+	rb := requestBody{}
+
+	err := json.NewDecoder(r.Body).Decode(&rb)
 	if err != nil {
-		return response.NewBadRequestErrorResponse("Invalid id: not integer")
+		return response.NewBadRequestErrorResponse("Invalid json %w")
+	}
+
+	empl, err := app.DI().EmployeeRepo.FindEmployeeByLogin(ctx, rb.Login)
+	if err != nil {
+		return response.NewBadRequestErrorResponse("No employee found by login/password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(empl.Password), []byte(rb.Password))
+	if err != nil {
+		return response.NewBadRequestErrorResponse("No employee found by login/password")
 	}
 
 	cred := auth.Credentials{
-		Name: "Nurbek",
-		ID:   id,
+		Login: empl.Login,
+		ID:    empl.ID,
 	}
 
-	token, err := authProvider.Authorize(cred)
+	token, err := authProvider.GenerateToken(cred)
 	if err != nil {
 		return response.NewBadRequestErrorResponse(err.Error())
 	}
