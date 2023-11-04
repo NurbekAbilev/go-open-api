@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/handler"
+	"github.com/nurbekabilev/go-open-api/internal/middleware"
 
 	sw "github.com/nurbekabilev/go-open-api/internal/handler/swaggerui"
 )
@@ -20,15 +21,17 @@ func main() {
 	defer closer()
 
 	r := mux.NewRouter()
+	protectedRoutes := r.PathPrefix("/").Subrouter()
+	protectedRoutes.Use(middleware.AuthMiddleware)
 
 	// Positions
-	r.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
+	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
 
 	// Employees @todo
 
 	// Auth routes
 	r.HandleFunc("/api/v1/auth", handler.HandleAuthEmployee).Methods("POST")
-	r.HandleFunc("/api/v1/auth/validate", handler.ValidateAuthEmployee).Methods("POST")
+	// r.HandleFunc("/api/v1/auth/validate", handler.ValidateAuthEmployee).Methods("POST")
 
 	// Host swagger-ui
 	http.Handle("/api/swagger/", http.StripPrefix("/api/swagger", swaggerui.Handler(sw.GetSwaggerYml())))

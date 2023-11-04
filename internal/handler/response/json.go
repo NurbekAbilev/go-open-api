@@ -44,6 +44,10 @@ func NewBadRequestErrorResponse(errorMsg string) Response {
 	return NewErrResponse(http.StatusBadRequest, errorMsg)
 }
 
+func NewUnauthroziedResponse(errorMsg string) Response {
+	return NewErrResponse(http.StatusUnauthorized, errorMsg)
+}
+
 func WriteJsonResponse(w http.ResponseWriter, r Response) {
 	w.Header().Set("Content-Type", "application/json")
 
