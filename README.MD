@@ -5,7 +5,8 @@
 - [x] Change to MUX
 - [ ] Add error handler
 - [ ] Add support for pagination
-- [ ] Use make Target [link](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
+- [x] Use make Target [link](https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html)
+- [ ] Hash passwords
 
 ## Database
 - [x] Database migration    
@@ -17,7 +18,7 @@
 - [x] Host swagger UI
 
 ## Testing
-- [ ] Write Integrations/HTTP tests ([] make them seperate from unit)
+- [ ] Write Integrations/HTTP tests (make them seperate from unit)
 - [ ] Create Auth/Middelware
 
 ## Useful links Open API
