@@ -28,6 +28,20 @@ func NewOkResponse(data any) Response {
 	}
 }
 
+func NewOkMessageResponse(message string) Response {
+	type ok struct {
+		Message string `json:"message"`
+	}
+
+	return Response{
+		Code:     http.StatusOK,
+		ErrorMsg: "",
+		Data: ok{
+			Message: message,
+		},
+	}
+}
+
 func NewErrResponse(code int, errorMsg string) Response {
 	return Response{
 		Code:     http.StatusInternalServerError,
@@ -37,6 +51,7 @@ func NewErrResponse(code int, errorMsg string) Response {
 }
 
 func NewServerError(errorMsg string) Response {
+	log.Println("Server error:", errorMsg)
 	return NewErrResponse(http.StatusInternalServerError, errorMsg)
 }
 

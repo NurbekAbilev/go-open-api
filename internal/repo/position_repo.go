@@ -32,7 +32,6 @@ func NewPositionRepo(db *sql.DB) PositionRepo {
 }
 
 func (r PositionRepo) CreatePosition(ctx context.Context, p Position) (id int, err error) {
-
 	query := `
 		insert into positions(name, salary) 
 			values ($1, $2) 
@@ -47,20 +46,6 @@ func (r PositionRepo) CreatePosition(ctx context.Context, p Position) (id int, e
 
 	return lastInsertId, nil
 }
-
-// func (repo PositionRepo) GetPositionById(db *sql.DB, id int) (*Position, error) {
-// 	var p Position
-
-// 	row := db.QueryRow("select id, name, salary from position where id = $1", id)
-// 	if err := row.Scan(&p.ID, &p.Name, &p.Salary); err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return nil, nil
-// 		}
-// 		return nil, err
-// 	}
-
-// 	return &p, nil
-// }
 
 func ValidateAddPositionStruct(p Position) error {
 	if p.Name == nil || *p.Name == "" {

@@ -14,6 +14,7 @@ import (
 type inj struct {
 	Auth         auth.AuthProvider
 	PositionRepo repo.PositionRepo
+	EmployeeRepo repo.EmployeeRepo
 }
 
 var singleton *inj

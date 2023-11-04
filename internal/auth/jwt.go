@@ -33,8 +33,8 @@ func (a *JWTAuthProvider) Authorize(cred Credentials) (authToken string, err err
 
 func (a *JWTAuthProvider) CheckAuth(authToken string) (err error) {
 	empl := repo.Employee{
-		ID:   1,
-		Name: "Nurbek",
+		ID:        1,
+		FirstName: "Nurbek",
 	}
 	a.currentUser = empl
 
