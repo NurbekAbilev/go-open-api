@@ -30,7 +30,7 @@ func main() {
 	// Employees @todo
 
 	// Auth routes
-	r.HandleFunc("/api/v1/signup", handler.HandleAuthEmployee).Methods("POST")
+	r.HandleFunc("/api/v1/signup", handler.HandleSignUp).Methods("POST")
 	r.HandleFunc("/api/v1/auth", handler.HandleAuthEmployee).Methods("POST")
 	// r.HandleFunc("/api/v1/auth/validate", handler.ValidateAuthEmployee).Methods("POST")
 

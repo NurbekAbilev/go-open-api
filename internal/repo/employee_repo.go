@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -14,8 +15,8 @@ type EmployeeRepo struct {
 	db *sql.DB
 }
 
-func NewEmployeeRepo(db *sql.DB) PositionRepo {
-	return PositionRepo{
+func NewEmployeeRepo(db *sql.DB) EmployeeRepo {
+	return EmployeeRepo{
 		db: db,
 	}
 }
@@ -23,7 +24,7 @@ func NewEmployeeRepo(db *sql.DB) PositionRepo {
 func (r EmployeeRepo) CreateEmployee(ctx context.Context, empl Employee) (id string, err error) {
 	query := `
 		insert into employees(first_name, last_name, position_id, login, password, created_at) 
-			values ($1, $2) 
+			values ($1, $2, $3, $4, $5, $6) 
 		returning id
 	`
 
@@ -34,6 +35,7 @@ func (r EmployeeRepo) CreateEmployee(ctx context.Context, empl Employee) (id str
 	).Scan(&lastInsertId)
 
 	if err != nil {
+		log.Println("CreateEmployee: %w", err)
 		return "", err
 	}
 

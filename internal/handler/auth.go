@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,13 +32,12 @@ func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	response.WriteJsonResponse(w, rs)
 }
 
-func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request, authProvider auth.AuthProvider) response.Response {
-	// di := app.DI()
-
+func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {
+	log.Println("Sign up")
 	empl := repo.Employee{}
 	err := json.NewDecoder(r.Body).Decode(&empl)
 	if err != nil {
-		return response.NewBadRequestErrorResponse("could not parse json content")
+		return response.NewBadRequestErrorResponse(err.Error())
 	}
 
 	_, err = app.DI().EmployeeRepo.CreateEmployee(ctx, empl)
@@ -49,7 +49,7 @@ func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request, authPro
 }
 
 func validateEmployee(empl repo.Employee) error {
-	if empl.ID == 0 {
+	if empl.ID == "" {
 		return errors.New("invalid id")
 	}
 	if empl.FirstName == "" {

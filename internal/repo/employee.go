@@ -11,7 +11,7 @@ type Employee struct {
 	UpdatedAt  string `json:"updated_at"`
 }
 
-func (e Employee) GetID() int {
+func (e Employee) GetID() string {
 	return e.ID
 }
 

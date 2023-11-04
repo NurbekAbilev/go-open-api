@@ -54,6 +54,7 @@ func initDatabase() (db *sql.DB) {
 
 func initDI(db *sql.DB) {
 	singleton = &inj{
+		EmployeeRepo: repo.NewEmployeeRepo(db),
 		PositionRepo: repo.NewPositionRepo(db),
 		Auth:         auth.InitAuth(),
 	}
