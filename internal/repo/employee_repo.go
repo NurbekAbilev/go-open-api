@@ -5,14 +5,9 @@ import (
 	"database/sql"
 	"log"
 	"time"
-)
 
-type CreateEmployeeRepo interface {
-	CreateEmployee(ctx context.Context, empl Employee) (id string, err error)
-}
-type FindByLoginEmployeeRepo interface {
-	FindEmployeeByLogin(ctx context.Context, login string) (*Employee, error)
-}
+	"github.com/nurbekabilev/go-open-api/internal/pagination"
+)
 
 type EmployeeRepo struct {
 	db *sql.DB

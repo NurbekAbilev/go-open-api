@@ -5,21 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+
+	"github.com/nurbekabilev/go-open-api/internal/pagination"
 )
-
-type Position struct {
-	ID     *int    `json:"id"`
-	Name   *string `json:"name"`
-	Salary *int    `json:"salary"`
-}
-
-type CreatePositionRepo interface {
-	CreatePosition(ctx context.Context, p Position) (id int, err error)
-}
-
-type GetOnePositionRepo interface {
-	GetPositionById(db *sql.DB, id int) (Position, error)
-}
 
 type PositionRepo struct {
 	db *sql.DB
@@ -57,4 +46,26 @@ func ValidateAddPositionStruct(p Position) error {
 	}
 
 	return nil
+}
+
+func (r EmployeeRepo) GetPositionsPaginated(db *sql.DB, pgReq pagination.PaginationRequest) (pagination.PaginatedData[Position], error) {
+	query := `
+		select first_name, last_name, position_id, login, password from employees
+			limit $1 offset $2
+	`
+
+	positions := make([]Position, 0)
+
+	offset := pagination.CalcOffset()
+	rows, err := db.QueryContext(query, pgReq.LimitPerPage, pagination.CalcOffset(pgReq))
+
+	err := r.db.QueryRowContext(ctx, query, login).Scan(
+		&empl.FirstName, &empl.LastName, &empl.PositionID, &empl.Login, &empl.Password,
+	)
+	if err != nil {
+		log.Println("Error during find employee by login: %w", err)
+		return nil, err
+	}
+
+	return &empl, nil
 }

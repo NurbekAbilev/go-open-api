@@ -25,6 +25,7 @@ func main() {
 	protectedRoutes.Use(middleware.AuthMiddleware)
 
 	// Positions
+	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("GET")
 	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
 
 	// Employees @todo

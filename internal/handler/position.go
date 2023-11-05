@@ -15,12 +15,25 @@ func HandleAddPosition(w http.ResponseWriter, r *http.Request) {
 	di := app.DI()
 	ctx := r.Context()
 
-	rs := AddPosition(ctx, di.PositionRepo, r)
+	rs := addPosition(ctx, di.PositionRepo, r)
 
 	response.WriteJsonResponse(w, rs)
 }
 
-func AddPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *http.Request) response.Response {
+func HandlerGetPositions(w http.ResponseWriter, r *http.Request) {
+	di := app.DI()
+	ctx := r.Context()
+
+	rs := getPositions(ctx, w, r)
+
+	response.WriteJsonResponse(w, rs)
+}
+
+func getPositions(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {
+
+}
+
+func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *http.Request) response.Response {
 	p := repo.Position{}
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
