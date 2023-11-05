@@ -3,7 +3,6 @@ package auth
 import "errors"
 
 type Credentials struct {
-	// todo temporary solution
 	Login string
 	ID    string
 }
