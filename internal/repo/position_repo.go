@@ -48,24 +48,37 @@ func ValidateAddPositionStruct(p Position) error {
 	return nil
 }
 
-func (r EmployeeRepo) GetPositionsPaginated(db *sql.DB, pgReq pagination.PaginationRequest) (pagination.PaginatedData[Position], error) {
-	query := `
-		select first_name, last_name, position_id, login, password from employees
-			limit $1 offset $2
-	`
+func (r PositionRepo) GetPositionsPaginated(ctx context.Context, pgReq pagination.PaginationRequest) (*pagination.PaginatedData[Position], error) {
+	query := "select id, name, salary from positions"
+
+	pageCount, rows, err := pagination.PaginateQuery(ctx, r.db, query, pgReq)
+	if err != nil {
+		return nil, err
+	}
 
 	positions := make([]Position, 0)
 
-	offset := pagination.CalcOffset()
-	rows, err := db.QueryContext(query, pgReq.LimitPerPage, pagination.CalcOffset(pgReq))
+	for rows.Next() {
+		pos := Position{}
+		err := rows.Scan(
+			&pos.ID, &pos.Name, &pos.Salary,
+		)
+		if err != nil {
+			return nil, err
+		}
+		positions = append(positions, pos)
+	}
 
-	err := r.db.QueryRowContext(ctx, query, login).Scan(
-		&empl.FirstName, &empl.LastName, &empl.PositionID, &empl.Login, &empl.Password,
-	)
 	if err != nil {
 		log.Println("Error during find employee by login: %w", err)
 		return nil, err
 	}
 
-	return &empl, nil
+	pdata := pagination.PaginatedData[Position]{
+		CurentPage:    pgReq.CurrentPage,
+		AmountOfPages: pageCount,
+		Data:          positions,
+	}
+
+	return &pdata, nil
 }

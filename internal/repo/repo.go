@@ -17,7 +17,7 @@ type GetOnePositionRepo interface {
 }
 
 type GetPositionsPaginated interface {
-	GetPositionsPaginated(db *sql.DB, pgReq pagination.PaginationRequest) (pagination.PaginatedData[Position], error)
+	GetPositionsPaginated(ctx context.Context, pgReq pagination.PaginationRequest) (*pagination.PaginatedData[Position], error)
 }
 
 // Employee repo

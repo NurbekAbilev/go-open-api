@@ -8,6 +8,7 @@ import (
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/handler/response"
+	"github.com/nurbekabilev/go-open-api/internal/pagination"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
 
@@ -21,7 +22,7 @@ func HandleAddPosition(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandlerGetPositions(w http.ResponseWriter, r *http.Request) {
-	di := app.DI()
+	// di := app.DI()
 	ctx := r.Context()
 
 	rs := getPositions(ctx, w, r)
@@ -30,7 +31,19 @@ func HandlerGetPositions(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPositions(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {
+	di := app.DI()
 
+	rg := pagination.PaginationRequest{
+		PerPageAmount: pagination.LimitPerPage,
+		CurrentPage:   2,
+	}
+
+	pd, err := di.PositionRepo.GetPositionsPaginated(ctx, rg)
+	if err != nil {
+		return response.NewServerError("server error")
+	}
+
+	return response.NewOkResponse(pd)
 }
 
 func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *http.Request) response.Response {
