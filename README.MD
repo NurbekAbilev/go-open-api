@@ -13,6 +13,7 @@
 - [x] Add indexes to firstname, lastname on employees
 - [ ] Change Database Connection to PGX [link](https://github.com/jackc/pgx)
 - [ ] Update updated_at created_at columns
+- [ ] Run tests un parallel using t.Parallel() (each test in its own schema) [link](https://medium.com/kongkow-it-medan/parallel-database-integration-test-on-go-application-8706b150ee2e)
 
 ## Open Api
 - [x] Host swagger UI
