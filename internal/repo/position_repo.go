@@ -60,9 +60,7 @@ func (r PositionRepo) GetPositionsPaginated(ctx context.Context, pgReq paginatio
 
 	for rows.Next() {
 		pos := Position{}
-		err := rows.Scan(
-			&pos.ID, &pos.Name, &pos.Salary,
-		)
+		err := rows.Scan(&pos.ID, &pos.Name, &pos.Salary)
 		if err != nil {
 			return nil, err
 		}
