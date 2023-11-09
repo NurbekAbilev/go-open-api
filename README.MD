@@ -1,6 +1,7 @@
 # Project for learning purposes
 
 - [ ] Run migrations from code, so I can run migrations in tests epta
+- [ ] Setup TestMain function for setup/teardown
 
 ## General
 - [x] Use ENV file
