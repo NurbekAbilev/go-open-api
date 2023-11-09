@@ -2,6 +2,7 @@
 
 - [ ] Run migrations from code, so I can run migrations in tests epta
 - [ ] Setup TestMain function for setup/teardown
+- [ ] Add testify lib
 
 ## General
 - [x] Use ENV file
