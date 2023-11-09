@@ -1,5 +1,7 @@
 # Project for learning purposes
 
+- [ ] Run migrations from code, so I can run migrations in tests epta
+
 ## General
 - [x] Use ENV file
 - [x] Change to MUX
