@@ -15,6 +15,7 @@ type inj struct {
 	Auth         auth.AuthProvider
 	PositionRepo repo.PositionRepo
 	EmployeeRepo repo.EmployeeRepo
+	DB           *sql.DB
 }
 
 var singleton *inj
@@ -26,17 +27,33 @@ func DI() *inj {
 	return singleton
 }
 
-func InitApp() (closer func()) {
-	initConfig()
-	db := initDatabase()
+type DBInitFunc func() (*sql.DB, error)
+
+type AppConfig struct {
+	dbIniter DBInitFunc
+}
+
+func InitApp(cfg AppConfig) (closer func(), err error) {
+	initDotEnv()
+
+	dbIniter := cfg.dbIniter
+	if dbIniter == nil {
+		dbIniter = initDatabase
+	}
+
+	db, err := dbIniter()
+	if err != nil {
+		return nil, err
+	}
+
 	initDI(db)
 
 	return func() {
 		db.Close()
-	}
+	}, nil
 }
 
-func initConfig() {
+func initDotEnv() {
 	rootPath := fs.RootPath()
 	err := godotenv.Load(rootPath + "/.env")
 	if err != nil {
@@ -44,19 +61,24 @@ func initConfig() {
 	}
 }
 
-func initDatabase() (db *sql.DB) {
+func initDatabase() (*sql.DB, error) {
 	db, err := initDB(os.Getenv("DB_URL"))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return db
+	return db, nil
 }
 
 func initDI(db *sql.DB) {
+	if db == nil {
+		log.Fatal("Cannot init app with null db")
+	}
+
 	singleton = &inj{
 		EmployeeRepo: repo.NewEmployeeRepo(db),
 		PositionRepo: repo.NewPositionRepo(db),
 		Auth:         auth.InitAuth(),
+		DB:           db,
 	}
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	sw "github.com/flowchartsman/swaggerui"
@@ -17,7 +18,10 @@ import (
 const host = ":8080"
 
 func main() {
-	closer := app.InitApp()
+	closer, err := app.InitApp(app.AppConfig{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer closer()
 
 	r := mux.NewRouter()
