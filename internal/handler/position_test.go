@@ -49,15 +49,17 @@ func setupSchema(t *testing.T, db *sql.DB) (string, func()) {
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
 
-	close, err := app.InitApp(app.AppConfig{})
+	_, err := app.InitApp(app.AppConfig{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer close()
+	// defer close()
 
-	
+	db := app.DI().DB
 
-	// app.DI().
+	schemaName, c2 := setupSchema(t, db)
+	_ = schemaName
+	_ = c2
 
 	requestBody := struct {
 		Name   string `json:"name"`

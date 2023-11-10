@@ -2,11 +2,15 @@ package app
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
-	"os"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/joho/godotenv"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
+	"github.com/nurbekabilev/go-open-api/internal/db"
+	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
 	"github.com/nurbekabilev/go-open-api/internal/fs"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
@@ -34,11 +38,11 @@ type AppConfig struct {
 }
 
 func InitApp(cfg AppConfig) (closer func(), err error) {
-	initDotEnv()
+	loadDotEnv()
 
 	dbIniter := cfg.dbIniter
 	if dbIniter == nil {
-		dbIniter = initDatabase
+		dbIniter = db.InitDatabase
 	}
 
 	db, err := dbIniter()
@@ -47,26 +51,22 @@ func InitApp(cfg AppConfig) (closer func(), err error) {
 	}
 
 	initDI(db)
+	err = dbpkg.Migrate(db)
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("could not migrate: %w", err)
+	}
 
 	return func() {
 		db.Close()
 	}, nil
 }
 
-func initDotEnv() {
+func loadDotEnv() {
 	rootPath := fs.RootPath()
 	err := godotenv.Load(rootPath + "/.env")
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func initDatabase() (*sql.DB, error) {
-	db, err := initDB(os.Getenv("DB_URL"))
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
 }
 
 func initDI(db *sql.DB) {
@@ -80,18 +80,4 @@ func initDI(db *sql.DB) {
 		Auth:         auth.InitAuth(),
 		DB:           db,
 	}
-}
-
-func initDB(connstr string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", connstr)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }
