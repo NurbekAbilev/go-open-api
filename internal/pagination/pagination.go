@@ -2,8 +2,10 @@ package pagination
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const LimitPerPage = 10
@@ -19,11 +21,11 @@ type PaginationRequest struct {
 	CurrentPage   int
 }
 
-func PaginateQuery(ctx context.Context, db *sql.DB, query string, pg PaginationRequest, args ...any) (pageCount int, rows *sql.Rows, err error) {
+func PaginateQuery(ctx context.Context, con *pgxpool.Pool, query string, pg PaginationRequest, args ...any) (pageCount int, rows pgx.Rows, err error) {
 	countQuery := "select count(1) as count from (" + query + ") t"
 
 	var allCount int
-	err = db.QueryRowContext(ctx, countQuery).Scan(&allCount)
+	err = con.QueryRow(ctx, countQuery).Scan(&allCount)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -31,12 +33,12 @@ func PaginateQuery(ctx context.Context, db *sql.DB, query string, pg PaginationR
 	offset := pg.PerPageAmount * (pg.CurrentPage - 1)
 	mainQuery := fmt.Sprintf("select * from (%s) t limit %d offset %d", query, pg.PerPageAmount, offset)
 
-	rows, err = db.QueryContext(ctx, mainQuery, args...)
+	rows1, err := con.Query(ctx, mainQuery, args...)
 	if err != nil {
 		return 0, nil, err
 	}
 
 	pageCount = (allCount / pg.PerPageAmount) + 1
 
-	return pageCount, rows, nil
+	return pageCount, rows1, nil
 }

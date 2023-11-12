@@ -1,24 +1,30 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
-	"os"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/nurbekabilev/go-open-api/internal/fs"
 )
 
-func Migrate(db *sql.DB) error {
-	migrationsPath := fmt.Sprintf("file://%s", fs.RootPath()+"/migrations")
 
-	// migrate.New
-	m, err := migrate.New(
-		migrationsPath,
-		os.Getenv("DB_URL"),
-	)
+// Create new instance of connection(sql.DB) and migrate
+func Migrate(dsn string) error {
+	db, err := InitDatabase()
+	if err != nil {
+		return fmt.Errorf("could not init database for migration: %w", err)
+	}
+
+	mDriver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("could not init driver for migrations: %w", err)
+	}
+
+	migrationsPath := fmt.Sprintf("file://%s/migrations", fs.RootPath())
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", mDriver)
 	if err != nil {
 		return fmt.Errorf("could not init migration: %w", err)
 	}

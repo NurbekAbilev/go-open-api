@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/nurbekabilev/go-open-api/internal/app"
+	"github.com/nurbekabilev/go-open-api/internal/config"
 	"github.com/nurbekabilev/go-open-api/internal/handler"
 	"github.com/nurbekabilev/go-open-api/internal/middleware"
 
@@ -18,6 +19,7 @@ import (
 const host = ":8080"
 
 func main() {
+	config.LoadDotEnv()
 	closer, err := app.InitApp(app.AppConfig{})
 	if err != nil {
 		log.Fatal(err)

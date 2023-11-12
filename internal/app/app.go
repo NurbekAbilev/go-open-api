@@ -1,17 +1,17 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/joho/godotenv"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
-	"github.com/nurbekabilev/go-open-api/internal/db"
 	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
-	"github.com/nurbekabilev/go-open-api/internal/fs"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
 
@@ -19,7 +19,7 @@ type inj struct {
 	Auth         auth.AuthProvider
 	PositionRepo repo.PositionRepo
 	EmployeeRepo repo.EmployeeRepo
-	DB           *sql.DB
+	DB           *pgxpool.Pool
 }
 
 var singleton *inj
@@ -34,50 +34,46 @@ func DI() *inj {
 type DBInitFunc func() (*sql.DB, error)
 
 type AppConfig struct {
-	dbIniter DBInitFunc
+	PgxConfig *pgxpool.Config
 }
 
 func InitApp(cfg AppConfig) (closer func(), err error) {
-	loadDotEnv()
+	ctx := context.Background()
+	dbUrl := os.Getenv("DB_URL")
 
-	dbIniter := cfg.dbIniter
-	if dbIniter == nil {
-		dbIniter = db.InitDatabase
+	if cfg.PgxConfig == nil {
+		conf, err := pgxpool.ParseConfig(dbUrl)
+		if err != nil {
+			return nil, err
+		}
+		cfg.PgxConfig = conf
 	}
 
-	db, err := dbIniter()
+	pgxConn, err := dbpkg.InitPgxConnect(ctx, cfg.PgxConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	initDI(db)
-	err = dbpkg.Migrate(db)
+	initDI(pgxConn)
+	err = dbpkg.Migrate(dbUrl)
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return nil, fmt.Errorf("could not migrate: %w", err)
 	}
 
 	return func() {
-		db.Close()
+		pgxConn.Close()
 	}, nil
 }
 
-func loadDotEnv() {
-	rootPath := fs.RootPath()
-	err := godotenv.Load(rootPath + "/.env")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func initDI(db *sql.DB) {
-	if db == nil {
+func initDI(pgxConn *pgxpool.Pool) {
+	if pgxConn == nil {
 		log.Fatal("Cannot init app with null db")
 	}
 
 	singleton = &inj{
-		EmployeeRepo: repo.NewEmployeeRepo(db),
-		PositionRepo: repo.NewPositionRepo(db),
+		// EmployeeRepo: repo.NewEmployeeRepo(db),
+		PositionRepo: repo.NewPositionRepo(pgxConn),
 		Auth:         auth.InitAuth(),
-		DB:           db,
+		DB:           pgxConn,
 	}
 }

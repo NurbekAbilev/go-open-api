@@ -2,19 +2,19 @@ package repo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nurbekabilev/go-open-api/internal/pagination"
 )
 
 type PositionRepo struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewPositionRepo(db *sql.DB) PositionRepo {
+func NewPositionRepo(db *pgxpool.Pool) PositionRepo {
 	return PositionRepo{
 		db: db,
 	}
@@ -28,7 +28,7 @@ func (r PositionRepo) CreatePosition(ctx context.Context, p Position) (id int, e
 	`
 
 	var lastInsertId int
-	err = r.db.QueryRowContext(ctx, query, p.Name, p.Salary).Scan(&lastInsertId)
+	err = r.db.QueryRow(ctx, query, p.Name, p.Salary).Scan(&lastInsertId)
 	if err != nil {
 		return 0, fmt.Errorf("could not create position: %s", err)
 	}

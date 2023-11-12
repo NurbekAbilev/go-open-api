@@ -2,23 +2,30 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
+	"github.com/nurbekabilev/go-open-api/internal/config"
 
 	"github.com/miladibra10/vjson"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func createSchema(db *sql.DB, schemaName string) error {
-	_, err := db.Exec(fmt.Sprintf("CREATE SCHEMA %s", schemaName))
+	_, err := db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
 	return err
 }
 
@@ -49,17 +56,25 @@ func setupSchema(t *testing.T, db *sql.DB) (string, func()) {
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
 
-	_, err := app.InitApp(app.AppConfig{})
-	if err != nil {
-		t.Fatal(err)
+	config.LoadDotEnv()
+
+	pgxConfig, err := pgxpool.ParseConfig(os.Getenv("DB_URL"))
+	assert.NoError(t, err)
+
+	pgxConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, "SET search_path TO your_schema")
+		return err
 	}
-	// defer close()
 
-	db := app.DI().DB
+	// schemaName, c2 := setupSchema(t, db)
+	// _ = schemaName
+	// _ = c2
 
-	schemaName, c2 := setupSchema(t, db)
-	_ = schemaName
-	_ = c2
+	appCloser, err := app.InitApp(app.AppConfig{
+		PgxConfig: pgxConfig,
+	})
+	assert.NoError(t, err)
+	defer appCloser()
 
 	requestBody := struct {
 		Name   string `json:"name"`
