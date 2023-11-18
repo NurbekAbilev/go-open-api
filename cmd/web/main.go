@@ -20,6 +20,9 @@ const host = ":8080"
 
 func main() {
 	config.LoadDotEnv()
+
+	// todo migrate before init app
+
 	closer, err := app.InitApp(app.AppConfig{})
 	if err != nil {
 		log.Fatal(err)
@@ -48,5 +51,8 @@ func main() {
 	http.Handle("/", r)
 
 	fmt.Println("Listening to the:", host)
-	http.ListenAndServe(host, nil)
+	err = http.ListenAndServe(host, nil)
+	if err != nil {
+		panic(err)
+	}
 }

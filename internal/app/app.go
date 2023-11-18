@@ -3,12 +3,9 @@ package app
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
 	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
@@ -34,7 +31,8 @@ func DI() *inj {
 type DBInitFunc func() (*sql.DB, error)
 
 type AppConfig struct {
-	PgxConfig *pgxpool.Config
+	PgxConfig  *pgxpool.Config
+	SchemaName string
 }
 
 func InitApp(cfg AppConfig) (closer func(), err error) {
@@ -55,10 +53,6 @@ func InitApp(cfg AppConfig) (closer func(), err error) {
 	}
 
 	initDI(pgxConn)
-	err = dbpkg.Migrate(dbUrl)
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return nil, fmt.Errorf("could not migrate: %w", err)
-	}
 
 	return func() {
 		pgxConn.Close()

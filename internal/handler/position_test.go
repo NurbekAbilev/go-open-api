@@ -7,68 +7,93 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/config"
+	"github.com/nurbekabilev/go-open-api/internal/db"
 
 	"github.com/miladibra10/vjson"
 
-	"github.com/jackc/pgx/v5"
+	_ "github.com/lib/pq"
 )
 
-func createSchema(db *sql.DB, schemaName string) error {
-	_, err := db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
-	return err
-}
-
-func dropSchema(db *sql.DB, schemaName string) error {
-	_, err := db.Exec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schemaName))
-	return err
-}
-
-func setupSchema(t *testing.T, db *sql.DB) (string, func()) {
+func setupSchema(t *testing.T, dsn string) (string, func()) {
 	t.Helper()
 
-	schemaName := fmt.Sprintf("test_schema_%s", t.Name())
+	db, err := sql.Open("postgres", dsn)
+	assert.NoError(t, err)
 
-	err := createSchema(db, schemaName)
-	if err != nil {
-		t.Fatalf("could not create schema: %v", err)
-	}
+	err = db.Ping()
+	assert.NoError(t, err)
+
+	schemaName := fmt.Sprintf("test_%s_%s", strings.ToLower(t.Name()), randomString(5))
+	schemaName = strings.ToLower(schemaName)
+
+	_, err = db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
+	assert.NoError(t, err)
 
 	teardown := func() {
-		if err := dropSchema(db, schemaName); err != nil {
-			t.Fatalf("could not drop schema: %v", err)
+		_, err := db.Exec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schemaName))
+		if err != nil {
+			t.Log("teardown: could not dorp schema: %w", err)
 		}
+		defer db.Close()
 	}
 
-	return schemaName, teardown
+	return strings.ToLower(schemaName), teardown
+}
+
+// Generates a random alphanumeric string of length n
+func randomString(n int) string {
+	const alphanumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	var output []byte
+	for i := 0; i < n; i++ {
+		output = append(output, alphanumeric[r.Intn(len(alphanumeric))])
+	}
+
+	return string(output)
 }
 
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
-
 	config.LoadDotEnv()
 
-	pgxConfig, err := pgxpool.ParseConfig(os.Getenv("DB_URL"))
-	assert.NoError(t, err)
+	dbUrl := os.Getenv("DB_URL")
 
-	pgxConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		_, err := conn.Exec(ctx, "SET search_path TO your_schema")
-		return err
+	// schemaName, tearDown := setupSchema(t, dbUrl)
+	// defer tearDown()
+
+	schemaName, _ := setupSchema(t, dbUrl)
+
+	err := db.SimpleMigrate(schemaName)
+	if err != nil {
+		t.Log("could not migrate: %w", err)
 	}
 
-	// schemaName, c2 := setupSchema(t, db)
-	// _ = schemaName
-	// _ = c2
+	pgxConfig, err := pgxpool.ParseConfig(dbUrl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pgxConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		_, err := conn.Exec(ctx, fmt.Sprintf("SET search_path TO %s", schemaName))
+		return err
+	}
 
 	appCloser, err := app.InitApp(app.AppConfig{
 		PgxConfig: pgxConfig,
