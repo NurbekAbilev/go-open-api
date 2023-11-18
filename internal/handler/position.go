@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/handler/response"
 	"github.com/nurbekabilev/go-open-api/internal/pagination"
@@ -21,13 +22,38 @@ func HandleAddPosition(w http.ResponseWriter, r *http.Request) {
 	response.WriteJsonResponse(w, rs)
 }
 
-func HandlerGetPositions(w http.ResponseWriter, r *http.Request) {
+func HandleGetPositions(w http.ResponseWriter, r *http.Request) {
 	// di := app.DI()
 	ctx := r.Context()
 
 	rs := getPositions(ctx, w, r)
 
 	response.WriteJsonResponse(w, rs)
+}
+
+func HandleGetOnePosition(w http.ResponseWriter, r *http.Request) {
+	// di := app.DI()
+	ctx := r.Context()
+
+	rs := getPositions(ctx, w, r)
+
+	response.WriteJsonResponse(w, rs)
+}
+
+func getOnePositions(ctx context.Context, r *http.Request) response.Response {
+	di := app.DI()
+
+	id := mux.Vars(r)["id"]
+	// if !ok {
+	// 	response.NewBadRequestErrorResponse()
+	// }
+
+	pos, err := di.PositionRepo.GetOnePositionByID(ctx, id)
+	if err != nil {
+		return response.NewServerError("server error")
+	}
+
+	return response.NewOkResponse(pos)
 }
 
 func getPositions(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {

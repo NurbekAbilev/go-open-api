@@ -20,11 +20,20 @@ type GetPositionsPaginated interface {
 	GetPositionsPaginated(ctx context.Context, pgReq pagination.PaginationRequest) (*pagination.PaginatedData[Position], error)
 }
 
+type GetOnePositionByID interface {
+	GetOnePositionByID(ctx context.Context, ID string) (Position, error)
+}
+
 // Employee repo
 type CreateEmployeeRepo interface {
 	CreateEmployee(ctx context.Context, empl Employee) (id string, err error)
 }
 
-type GetByLoginEmployeeRepo interface {
-	FindEmployeeByLogin(ctx context.Context, login string) (*Employee, error)
+// User repo
+type CreateUserRepo interface {
+	CreateUser(ctx context.Context, user User) (string, error)
+}
+
+type GetUserByLoginRepo interface {
+	GetUserByLogin(ctx context.Context, login string) (*User, error)
 }

@@ -15,6 +15,7 @@ import (
 type inj struct {
 	Auth         auth.AuthProvider
 	PositionRepo repo.PositionRepo
+	UserRepo     repo.UserRepo
 	EmployeeRepo repo.EmployeeRepo
 	DB           *pgxpool.Pool
 }
@@ -67,6 +68,7 @@ func initDI(pgxConn *pgxpool.Pool) {
 	singleton = &inj{
 		// EmployeeRepo: repo.NewEmployeeRepo(db),
 		PositionRepo: repo.NewPositionRepo(pgxConn),
+		UserRepo:     repo.NewUserRepo(pgxConn),
 		Auth:         auth.InitAuth(),
 		DB:           pgxConn,
 	}

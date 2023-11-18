@@ -25,33 +25,31 @@ func HandleAuth(w http.ResponseWriter, r *http.Request) {
 
 func HandleSignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
 	rs := signUp(ctx, w, r)
-
 	response.WriteJsonResponse(w, rs)
 }
 
 func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) response.Response {
-	empl := repo.Employee{}
-	err := json.NewDecoder(r.Body).Decode(&empl)
+	user := repo.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		return response.NewBadRequestErrorResponse(err.Error())
 	}
 
-	err = validateEmployee(empl)
+	err = validateUser(user)
 	if err != nil {
 		return response.NewBadRequestErrorResponse(err.Error())
 	}
 
 	const cost = 8
-	hash, err := bcrypt.GenerateFromPassword([]byte(empl.Password), cost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), cost)
 	if err != nil {
 		return response.NewServerError("server error")
 	}
 
-	empl.Password = string(hash)
+	user.Password = string(hash)
 
-	_, err = app.DI().EmployeeRepo.CreateEmployee(ctx, empl)
+	_, err = app.DI().UserRepo.CreateUser(ctx, user)
 	if err != nil {
 		return response.NewServerError("server error")
 	}
@@ -59,21 +57,12 @@ func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) respons
 	return response.NewOkMessageResponse("signed up")
 }
 
-func validateEmployee(empl repo.Employee) error {
-	if empl.FirstName == "" {
-		return errors.New("invalid first_name")
-	}
-	if empl.LastName == "" {
+func validateUser(user repo.User) error {
+	if user.Login == "" {
 		return errors.New("invalid last_name")
 	}
-	if empl.PositionID == 0 {
+	if user.Password == "" {
 		return errors.New("invalid position_id")
-	}
-	if empl.Login == "" {
-		return errors.New("invalid login")
-	}
-	if empl.Password == "" {
-		return errors.New("invalid password")
 	}
 
 	return nil
@@ -92,19 +81,19 @@ func AuthorizeEmployee(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return response.NewBadRequestErrorResponse("Invalid json %w")
 	}
 
-	empl, err := app.DI().EmployeeRepo.FindEmployeeByLogin(ctx, rb.Login)
+	user, err := app.DI().UserRepo.GetUserByLogin(ctx, rb.Login)
 	if err != nil {
 		return response.NewBadRequestErrorResponse("No employee found by login/password")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(empl.Password), []byte(rb.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(rb.Password))
 	if err != nil {
 		return response.NewBadRequestErrorResponse("No employee found by login/password")
 	}
 
 	cred := auth.Credentials{
-		Login: empl.Login,
-		ID:    empl.ID,
+		Login: user.Login,
+		ID:    user.ID,
 	}
 
 	token, err := authProvider.GenerateToken(cred)

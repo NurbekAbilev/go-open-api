@@ -80,3 +80,16 @@ func (r PositionRepo) GetPositionsPaginated(ctx context.Context, pgReq paginatio
 
 	return &pdata, nil
 }
+
+func (r PositionRepo) GetOnePositionByID(ctx context.Context, ID string) (Position, error) {
+	query := "select id, name, salary from positions where id = $1"
+	row := r.db.QueryRow(ctx, query, ID)
+	pos := Position{}
+
+	err := row.Scan(&pos.ID, &pos.Name, &pos.Salary)
+	if err != nil {
+		return pos, fmt.Errorf("repo: could not find position by id: %w", err)
+	}
+
+	return pos, nil
+}

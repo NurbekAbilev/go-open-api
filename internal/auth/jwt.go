@@ -14,6 +14,8 @@ type AuthEmployee struct {
 }
 
 type CustomAuthClaims struct {
+	Login string
+	ID    string
 	jwt.RegisteredClaims
 }
 
@@ -59,6 +61,8 @@ func generateSignedJWT(cred Credentials) (signedString string, err error) {
 	secretKey := os.Getenv("JWT_KEY")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomAuthClaims{
+		ID:    cred.ID,
+		Login: cred.Login,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

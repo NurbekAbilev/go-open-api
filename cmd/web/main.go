@@ -35,7 +35,8 @@ func main() {
 
 	// Positions
 	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandleAddPosition).Methods("POST")
-	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandlerGetPositions).Methods("GET")
+	protectedRoutes.HandleFunc("/api/v1/positions", handler.HandleGetPositions).Methods("GET")
+	protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", handler.HandleGetOnePosition).Methods("GET")
 
 	// Employees @todo
 
