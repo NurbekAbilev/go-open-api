@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/handler/response"
 	"github.com/nurbekabilev/go-open-api/internal/pagination"
@@ -33,10 +35,7 @@ func HandleGetPositions(w http.ResponseWriter, r *http.Request) {
 
 func HandleGetOnePosition(w http.ResponseWriter, r *http.Request) {
 	// di := app.DI()
-	ctx := r.Context()
-
-	rs := getPositions(ctx, w, r)
-
+	rs := getOnePositions(r.Context(), r)
 	response.WriteJsonResponse(w, rs)
 }
 
@@ -44,11 +43,14 @@ func getOnePositions(ctx context.Context, r *http.Request) response.Response {
 	di := app.DI()
 
 	id := mux.Vars(r)["id"]
-	// if !ok {
-	// 	response.NewBadRequestErrorResponse()
-	// }
+	if id == "" {
+		return response.NewBadRequestErrorResponse("invalid id")
+	}
 
 	pos, err := di.PositionRepo.GetOnePositionByID(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return response.NewNotFoundError("position not found")
+	}
 	if err != nil {
 		return response.NewServerError("server error")
 	}
