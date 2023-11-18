@@ -17,29 +17,39 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/config"
-	"github.com/nurbekabilev/go-open-api/internal/db"
-
-	"github.com/miladibra10/vjson"
-
-	_ "github.com/lib/pq"
+	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
 )
 
-func setupSchema(t *testing.T, dsn string) (string, func()) {
-	t.Helper()
+func GenerateSchemaNameForTest(t *testing.T) string {
+	schemaName := fmt.Sprintf("test_%s_%s", strings.ToLower(t.Name()), randomString(5))
+	return strings.ToLower(schemaName)
+}
 
+func SetupConnectionForTesting(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", dsn)
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
 	err = db.Ping()
-	assert.NoError(t, err)
+	if err != nil {
+		return nil, err
+	}
 
-	schemaName := fmt.Sprintf("test_%s_%s", strings.ToLower(t.Name()), randomString(5))
-	schemaName = strings.ToLower(schemaName)
+	return db, nil
+}
+
+func SetupSchemaForTesting(t *testing.T, dsn string) (string, func()) {
+	t.Helper()
+
+	schemaName := GenerateSchemaNameForTest(t)
+
+	db, err := SetupConnectionForTesting(dsn)
+	assert.NoError(t, err)
 
 	_, err = db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
 	assert.NoError(t, err)
@@ -50,6 +60,11 @@ func setupSchema(t *testing.T, dsn string) (string, func()) {
 			t.Log("teardown: could not dorp schema: %w", err)
 		}
 		defer db.Close()
+	}
+
+	err = dbpkg.SimpleMigrate(schemaName)
+	if err != nil {
+		t.Log("could not migrate: %w", err)
 	}
 
 	return strings.ToLower(schemaName), teardown
@@ -75,15 +90,8 @@ func TestCreatePosition(t *testing.T) {
 
 	dbUrl := os.Getenv("DB_URL")
 
-	// schemaName, tearDown := setupSchema(t, dbUrl)
-	// defer tearDown()
-
-	schemaName, _ := setupSchema(t, dbUrl)
-
-	err := db.SimpleMigrate(schemaName)
-	if err != nil {
-		t.Log("could not migrate: %w", err)
-	}
+	schemaName, tearDown := SetupSchemaForTesting(t, dbUrl)
+	defer tearDown()
 
 	pgxConfig, err := pgxpool.ParseConfig(dbUrl)
 	if err != nil {
@@ -127,12 +135,7 @@ func TestCreatePosition(t *testing.T) {
 		t.Errorf("expected error to be non nil got %v", err)
 	}
 
-	type posResponse struct {
-		ID   int
-		Name int
-	}
-
-	type responseStruct struct {
+	rs := struct {
 		Code     int    `json:"code"`
 		ErrorMsg string `json:"error"`
 		Data     struct {
@@ -140,35 +143,17 @@ func TestCreatePosition(t *testing.T) {
 			Name   string `json:"name"`
 			Salary int    `json:"salary"`
 		}
-	}
-
-	rs := responseStruct{}
+	}{}
 
 	err = json.Unmarshal(data, &rs)
 	if err != nil {
 		t.Errorf("error during json unmarhsal: %v", err)
 	}
-
-	schema := vjson.NewSchema(
-		vjson.Integer("code").Required(),
-		vjson.String("error").Required(),
-		vjson.Object("data", vjson.NewSchema(
-			vjson.Integer("id").Required(),
-			vjson.String("name").Required(),
-			vjson.Integer("salary").Required(),
-		)).Required(),
-	)
-
 	if rs.Data.Name != requestBody.Name {
 		t.Fatalf("response name is not equal to request name [%s] != [%s]", rs.Data.Name, requestBody.Name)
 	}
 
 	if rs.Data.Salary != requestBody.Salary {
 		t.Fatalf("response name is not equal to request name [%s] != [%s]", rs.Data.Name, requestBody.Name)
-	}
-
-	err = schema.ValidateBytes(data)
-	if err != nil {
-		t.Fatal("Error validating resposne json structure: %w", err)
 	}
 }

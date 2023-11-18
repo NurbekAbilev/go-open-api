@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,18 +79,6 @@ func SimpleMigrate(schemaName string) error {
 		return err
 	}
 
-	// csq := fmt.Sprintf(`create schema if not exists %s`, schemaName)
-	// _, err = db.Exec(csq)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// var sp string
-	// err = db.QueryRow("show search_path").Scan(&sp)
-	// if err != nil {
-	// 	return err
-	// }
-
 	for _, file := range files {
 		contents, err := os.ReadFile(file)
 		if err != nil {
@@ -105,7 +92,7 @@ func SimpleMigrate(schemaName string) error {
 			return err
 		}
 
-		log.Printf("migrated %s", file)
+		// log.Printf("migrated %s", file)
 	}
 
 	return nil
