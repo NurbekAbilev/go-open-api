@@ -1,29 +1,27 @@
-//go
 package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
-	"github.com/nurbekabilev/go-open-api/internal/config"
 	"github.com/nurbekabilev/go-open-api/test/util"
 )
 
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
-	config.LoadDotEnv()
 
-	dbUrl := os.Getenv("DB_URL")
-
-	pgxConfig, tearDown := util.SetupSchemaForTesting(t, dbUrl)
+	pgxConfig, tearDown := util.SetupSchemaForTesting(t)
 	defer tearDown()
 
 	appCloser, err := app.InitApp(app.AppConfig{
@@ -79,4 +77,63 @@ func TestCreatePosition(t *testing.T) {
 	if rs.Data.Salary != requestBody.Salary {
 		t.Fatalf("response name is not equal to request name [%s] != [%s]", rs.Data.Name, requestBody.Name)
 	}
+}
+
+func TestGetPosition(t *testing.T) {
+	t.Parallel()
+
+	pgxConfig, tearDown := util.SetupSchemaForTesting(t)
+	defer tearDown()
+
+	appCloser, err := app.InitApp(app.AppConfig{
+		PgxConfig: pgxConfig,
+	})
+	assert.NoError(t, err)
+	defer appCloser()
+
+	ctx := context.Background()
+
+	const name = "Software Engineer"
+	const salary = 1000
+
+	var id int
+
+	err = app.DI().DB.QueryRow(ctx, "insert into positions (name, salary) values ($1, $2) returning id", name, salary).Scan(&id)
+	assert.NoError(t, err)
+
+	a := fmt.Sprintf("/api/v1/positions/%d", id)
+	_ = a
+
+	log.Println(a)
+
+	r := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/positions/%d", id), nil)
+	w := httptest.NewRecorder()
+
+	HandleGetOnePosition(w, r)
+
+	res := w.Result()
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, res.Status, strconv.Itoa(http.StatusOK))
+
+	rs := struct {
+		Code     int    `json:"code"`
+		ErrorMsg string `json:"error"`
+		Data     struct {
+			ID     int    `json:"id"`
+			Name   string `json:"name"`
+			Salary int    `json:"salary"`
+		}
+	}{}
+
+	log.Println(string(data))
+
+	err = json.Unmarshal(data, &rs)
+	assert.NoError(t, err)
+
+	assert.Equal(t, id, rs.Data.ID)
 }

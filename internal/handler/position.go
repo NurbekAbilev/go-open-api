@@ -34,7 +34,6 @@ func HandleGetPositions(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetOnePosition(w http.ResponseWriter, r *http.Request) {
-	// di := app.DI()
 	rs := getOnePositions(r.Context(), r)
 	response.WriteJsonResponse(w, rs)
 }

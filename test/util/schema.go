@@ -5,23 +5,30 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nurbekabilev/go-open-api/internal/config"
 	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
 	"github.com/stretchr/testify/assert"
 )
 
-func SetupSchemaForTesting(t *testing.T, dsn string) (*pgxpool.Config, func()) {
+func SetupSchemaForTesting(t *testing.T) (*pgxpool.Config, func()) {
 	t.Helper()
+
+	config.LoadDotEnv()
+	dsn := os.Getenv("DB_URL")
 
 	schemaName := generateSchemaNameForTest(t)
 
 	db, err := setupConnectionForTesting(dsn)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	_, err = db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
 	assert.NoError(t, err)
