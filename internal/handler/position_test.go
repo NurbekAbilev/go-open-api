@@ -6,17 +6,42 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
+	"github.com/nurbekabilev/go-open-api/internal/auth"
 	"github.com/nurbekabilev/go-open-api/test/util"
 )
+
+type MockAuth struct{}
+type MockUser struct{}
+
+func (u MockUser) GetID() string {
+	return "1"
+}
+
+func (u MockUser) GetRole() string {
+	return "guest"
+}
+
+func (a MockAuth) GenerateToken(cred auth.Credentials) (authToken string, err error) {
+	return "", nil
+}
+func (a MockAuth) CheckAuth(authToken string) (err error) {
+	return nil
+}
+
+func (a MockAuth) GetAuthUser() auth.AbstractUser {
+	return MockUser{}
+}
+
+func createMockAuth() auth.AuthProvider {
+	return MockAuth{}
+}
 
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
@@ -25,7 +50,8 @@ func TestCreatePosition(t *testing.T) {
 	defer tearDown()
 
 	appCloser, err := app.InitApp(app.AppConfig{
-		PgxConfig: pgxConfig,
+		PgxConfig:    pgxConfig,
+		AuthProvider: createMockAuth(),
 	})
 	assert.NoError(t, err)
 	defer appCloser()
@@ -45,7 +71,9 @@ func TestCreatePosition(t *testing.T) {
 
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/positions", bytes.NewReader(requestBytes))
 	w := httptest.NewRecorder()
-	HandleAddPosition(w, r)
+
+	mux := GetRoutes()
+	mux.ServeHTTP(w, r)
 
 	res := w.Result()
 
@@ -86,7 +114,8 @@ func TestGetPosition(t *testing.T) {
 	defer tearDown()
 
 	appCloser, err := app.InitApp(app.AppConfig{
-		PgxConfig: pgxConfig,
+		PgxConfig:    pgxConfig,
+		AuthProvider: createMockAuth(),
 	})
 	assert.NoError(t, err)
 	defer appCloser()
@@ -101,24 +130,20 @@ func TestGetPosition(t *testing.T) {
 	err = app.DI().DB.QueryRow(ctx, "insert into positions (name, salary) values ($1, $2) returning id", name, salary).Scan(&id)
 	assert.NoError(t, err)
 
-	a := fmt.Sprintf("/api/v1/positions/%d", id)
-	_ = a
+	r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/positions/%d", id), nil)
 
-	log.Println(a)
-
-	r := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/positions/%d", id), nil)
 	w := httptest.NewRecorder()
 
-	HandleGetOnePosition(w, r)
+	m := GetRoutes()
+	m.ServeHTTP(w, r)
 
 	res := w.Result()
-
 	defer res.Body.Close()
 
 	data, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	assert.Equal(t, res.Status, strconv.Itoa(http.StatusOK))
+	assert.Equal(t, res.StatusCode, http.StatusOK)
 
 	rs := struct {
 		Code     int    `json:"code"`
@@ -129,8 +154,6 @@ func TestGetPosition(t *testing.T) {
 			Salary int    `json:"salary"`
 		}
 	}{}
-
-	log.Println(string(data))
 
 	err = json.Unmarshal(data, &rs)
 	assert.NoError(t, err)

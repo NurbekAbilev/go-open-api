@@ -1,51 +1,47 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	rtHelper "github.com/nurbekabilev/go-open-api/internal/fs"
 )
 
 // Create new instance of connection(sql.DB) and migrate
-// func Migrate(dsn string, schemaName string) error {
-// 	db, err := InitDatabase()
-// 	if err != nil {
-// 		return fmt.Errorf("could not init database for migration: %w", err)
-// 	}
+func Migrate(dsn string) error {
+	if dsn == "" {
+		return errors.New("empty dsn: set DB_URL variable")
+	}
 
-// 	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", schemaName))
-// 	if err != nil {
-// 		return fmt.Errorf("could not init database for migration: %w", err)
-// 	}
+	// db, err := InitDatabase()
+	// if err != nil {
+	// 	return fmt.Errorf("could not init database for migration: %w", err)
+	// }
+	// _, err = db.Exec(fmt.Sprintf("SET search_path TO %s", schemaName))
+	// if err != nil {
+	// 	return fmt.Errorf("could not init database for migration: %w", err)
+	// }
+	migrationsPath := fmt.Sprintf("file://%s/migrations", rtHelper.RootPath())
 
-// 	migrationsPath := fmt.Sprintf("file://%s/migrations", fs.RootPath())
+	m, err := migrate.New(migrationsPath, dsn)
+	if err != nil {
+		return fmt.Errorf("could not init migration: %w", err)
+	}
 
-// 	// m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", )
-// 	// m, err := migrate.New(migrationsPath, "postgres")
-// 	// postgres.ParseConfig(dsn)
-// 	drvier, err := postgres.WithConnection(context.Background(), db, &postgres.Config{})
-// 	if err != nil {
-// 		return fmt.Errorf("could not init %w:", err)
-// 	}
+	err = m.Up()
+	if err != nil {
+		return fmt.Errorf("could not migrate: %w", err)
+	}
 
-// 	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", drvier)
-// 	if err != nil {
-// 		return fmt.Errorf("could not init migration: %w", err)
-// 	}
-
-// 	err = m.Up()
-// 	if err != nil {
-// 		return fmt.Errorf("could not migrate: %w", err)
-// 	}
-
-// 	return nil
-// }
+	return nil
+}
 
 func getUpMigrationsFiles(migrationsPath string) []string {
 	var files []string

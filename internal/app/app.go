@@ -32,8 +32,8 @@ func DI() *inj {
 type DBInitFunc func() (*sql.DB, error)
 
 type AppConfig struct {
-	PgxConfig  *pgxpool.Config
-	SchemaName string
+	PgxConfig    *pgxpool.Config
+	AuthProvider auth.AuthProvider
 }
 
 func InitApp(cfg AppConfig) (closer func(), err error) {
@@ -53,23 +53,28 @@ func InitApp(cfg AppConfig) (closer func(), err error) {
 		return nil, err
 	}
 
-	initDI(pgxConn)
+	initDI(pgxConn, cfg.AuthProvider)
 
 	return func() {
 		pgxConn.Close()
 	}, nil
 }
 
-func initDI(pgxConn *pgxpool.Pool) {
+func initDI(pgxConn *pgxpool.Pool, authProvider auth.AuthProvider) {
 	if pgxConn == nil {
 		log.Fatal("Cannot init app with null db")
+	}
+
+	auth := auth.InitAuth()
+	if authProvider != nil {
+		auth = authProvider
 	}
 
 	singleton = &inj{
 		// EmployeeRepo: repo.NewEmployeeRepo(db),
 		PositionRepo: repo.NewPositionRepo(pgxConn),
 		UserRepo:     repo.NewUserRepo(pgxConn),
-		Auth:         auth.InitAuth(),
+		Auth:         auth,
 		DB:           pgxConn,
 	}
 }
