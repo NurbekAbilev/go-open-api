@@ -24,6 +24,10 @@ type GetOnePositionByID interface {
 	GetOnePositionByID(ctx context.Context, ID string) (Position, error)
 }
 
+type DeletePositionByIdRepo interface {
+	DeleteOnePositionByID(ctx context.Context, ID string) error
+}
+
 // Employee repo
 type CreateEmployeeRepo interface {
 	CreateEmployee(ctx context.Context, empl Employee) (id string, err error)

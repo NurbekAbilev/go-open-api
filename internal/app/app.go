@@ -1,14 +1,11 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
-	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
 	"github.com/nurbekabilev/go-open-api/internal/repo"
 )
 
@@ -32,32 +29,20 @@ func DI() *inj {
 type DBInitFunc func() (*sql.DB, error)
 
 type AppConfig struct {
-	PgxConfig    *pgxpool.Config
+	PgxCon       *pgxpool.Pool
 	AuthProvider auth.AuthProvider
 }
 
-func InitApp(cfg AppConfig) (closer func(), err error) {
-	ctx := context.Background()
-	dbUrl := os.Getenv("DB_URL")
-
-	if cfg.PgxConfig == nil {
-		conf, err := pgxpool.ParseConfig(dbUrl)
-		if err != nil {
-			return nil, err
-		}
-		cfg.PgxConfig = conf
+func InitApp(cfg AppConfig) error {
+	if cfg.PgxCon == nil {
+		log.Fatal("pgxCon cannot be nil")
+	}
+	if cfg.AuthProvider == nil {
+		cfg.AuthProvider = auth.NewJwtAuthProvider()
 	}
 
-	pgxConn, err := dbpkg.InitPgxConnect(ctx, cfg.PgxConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	initDI(pgxConn, cfg.AuthProvider)
-
-	return func() {
-		pgxConn.Close()
-	}, nil
+	initDI(cfg.PgxCon, cfg.AuthProvider)
+	return nil
 }
 
 func initDI(pgxConn *pgxpool.Pool, authProvider auth.AuthProvider) {

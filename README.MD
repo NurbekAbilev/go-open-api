@@ -38,3 +38,17 @@ Create migration
 make create_migration name=${migration_name}
 ```
 
+## Drop all test schemas
+```SQL
+DO $$ 
+DECLARE 
+    s_name text;
+BEGIN
+    FOR s_name IN (SELECT schema_name FROM information_schema.schemata WHERE schema_name LIKE 'test\_%') LOOP
+        -- Generate and execute the DROP SCHEMA statement for each matching schema.
+        EXECUTE 'DROP SCHEMA IF EXISTS ' || s_name || ' CASCADE';
+        RAISE NOTICE 'Dropped schema: %', s_name;
+    END LOOP;
+END $$;
+```
+

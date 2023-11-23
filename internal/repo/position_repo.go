@@ -93,3 +93,13 @@ func (r PositionRepo) GetOnePositionByID(ctx context.Context, ID string) (Positi
 
 	return pos, nil
 }
+
+func (r PositionRepo) DeleteOnePositionByID(ctx context.Context, ID string) error {
+	query := "delete from positions where id = $1"
+	_, err := r.db.Exec(ctx, query, ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

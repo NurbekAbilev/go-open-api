@@ -2,85 +2,96 @@ package util
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"math/rand"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/nurbekabilev/go-open-api/internal/config"
 	dbpkg "github.com/nurbekabilev/go-open-api/internal/db"
-	"github.com/stretchr/testify/assert"
 )
 
-func SetupSchemaForTesting(t *testing.T) (*pgxpool.Config, func()) {
+// func SetupSchemaForTesting(t *testing.T, db *sql.DB) (*pgxpool.Config, func()) {
+// 	t.Helper()
+
+// 	schemaName := generateSchemaNameForTest(t)
+
+// 	_, err := db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
+// 	assert.NoError(t, err)
+
+// 	teardown := func() {
+// 		_, err := db.Exec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schemaName))
+// 		if err != nil {
+// 			t.Log("teardown: could not dorp schema: %w", err)
+// 		}
+// 	}
+
+// 	err = dbpkg.SimpleMigrate(schemaName)
+// 	if err != nil {
+// 		t.Log("could not migrate: %w", err)
+// 	}
+
+// 	pgxConfig := setupPgxConfig(t, os.Getenv("DB_URL"), schemaName)
+
+// 	return pgxConfig, teardown
+// }
+
+func SetupSchemaForTesting(t *testing.T, db *pgxpool.Pool) (tearDown func()) {
 	t.Helper()
 
-	config.LoadDotEnv()
-	dsn := os.Getenv("DB_URL")
-
 	schemaName := generateSchemaNameForTest(t)
+	ctx := context.Background()
 
-	db, err := setupConnectionForTesting(dsn)
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
-	assert.NoError(t, err)
+	_, err = db.Exec(ctx, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	teardown := func() {
-		_, err := db.Exec(fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schemaName))
+		_, err := db.Exec(ctx, fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schemaName))
 		if err != nil {
-			t.Log("teardown: could not dorp schema: %w", err)
+			t.Log("teardown: could not drop schema: %w", err)
 		}
-		defer db.Close()
+		_ = tx.Rollback(ctx)
 	}
 
-	err = dbpkg.SimpleMigrate(schemaName)
+	err = dbpkg.SimpleMigrate(ctx, db, schemaName)
 	if err != nil {
-		t.Log("could not migrate: %w", err)
+		t.Logf("could not migrate schemaname = %s err: %v", schemaName, err)
 	}
 
-	pgxConfig := setupPgxConfig(t, dsn, schemaName)
-
-	return pgxConfig, teardown
-}
-
-func setupPgxConfig(t *testing.T, dsn string, schemaName string) *pgxpool.Config {
-	pgxConfig, err := pgxpool.ParseConfig(dsn)
-	assert.NoError(t, err)
-
-	pgxConfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		_, err := conn.Exec(ctx, fmt.Sprintf("SET search_path TO %s", schemaName))
-		return err
+	_, err = db.Exec(ctx, fmt.Sprintf("SET search_path TO %s", schemaName))
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	return pgxConfig
+	return teardown
 }
 
 func generateSchemaNameForTest(t *testing.T) string {
-	schemaName := fmt.Sprintf("test_%s_%s", strings.ToLower(t.Name()), randomString(5))
+	schemaName := fmt.Sprintf("test_%s_%s", strings.ToLower(t.Name()), randomString(20))
 	return strings.ToLower(schemaName)
 }
 
-func setupConnectionForTesting(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		return nil, err
-	}
+// func SetupConnectionForTesting(dsn string) (*sql.DB, error) {
+// 	db, err := sql.Open("postgres", dsn)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
+// 	err = db.Ping()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return db, nil
-}
+// 	return db, nil
+// }
 
 // Generates a random alphanumeric string of length n
 func randomString(n int) string {

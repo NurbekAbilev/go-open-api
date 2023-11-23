@@ -38,6 +38,11 @@ func HandleGetOnePosition(w http.ResponseWriter, r *http.Request) {
 	response.WriteJsonResponse(w, rs)
 }
 
+func HandleDeletePosition(w http.ResponseWriter, r *http.Request) {
+	rs := deleteOnePosition(r.Context(), r)
+	response.WriteJsonResponse(w, rs)
+}
+
 func getOnePositions(ctx context.Context, r *http.Request) response.Response {
 	di := app.DI()
 
@@ -51,7 +56,7 @@ func getOnePositions(ctx context.Context, r *http.Request) response.Response {
 		return response.NewNotFoundError("position not found")
 	}
 	if err != nil {
-		return response.NewServerError("server error")
+		return response.NewServerError(err)
 	}
 
 	return response.NewOkResponse(pos)
@@ -67,7 +72,7 @@ func getPositions(ctx context.Context, w http.ResponseWriter, r *http.Request) r
 
 	pd, err := di.PositionRepo.GetPositionsPaginated(ctx, rg)
 	if err != nil {
-		return response.NewServerError("server error")
+		return response.NewServerError(err)
 	}
 
 	return response.NewOkResponse(pd)
@@ -78,7 +83,7 @@ func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		log.Printf("could not decode positoin: %v", err)
-		return response.NewServerError(err.Error())
+		return response.NewServerError(err)
 	}
 
 	err = repo.ValidateAddPositionStruct(p)
@@ -89,10 +94,26 @@ func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *
 	id, err := createPosRepo.CreatePosition(ctx, p)
 	if err != nil {
 		log.Printf("could not create position: %v", err)
-		return response.NewServerError(err.Error())
+		return response.NewServerError(err)
 	}
 
 	p.ID = &id
 
 	return response.NewOkResponse(p)
+}
+
+func deleteOnePosition(ctx context.Context, r *http.Request) response.Response {
+	di := app.DI()
+
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		return response.NewBadRequestErrorResponse("invalid id")
+	}
+
+	err := di.PositionRepo.DeleteOnePositionByID(ctx, id)
+	if err != nil {
+		response.NewServerError(err)
+	}
+
+	return response.NewOkResponse(nil)
 }

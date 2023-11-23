@@ -44,14 +44,14 @@ func signUp(ctx context.Context, w http.ResponseWriter, r *http.Request) respons
 	const cost = 8
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), cost)
 	if err != nil {
-		return response.NewServerError("server error")
+		return response.NewServerError(err)
 	}
 
 	user.Password = string(hash)
 
 	_, err = app.DI().UserRepo.CreateUser(ctx, user)
 	if err != nil {
-		return response.NewServerError("server error")
+		return response.NewServerError(err)
 	}
 
 	return response.NewOkMessageResponse("signed up")

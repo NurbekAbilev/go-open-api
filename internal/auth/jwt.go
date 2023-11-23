@@ -23,6 +23,10 @@ type JWTAuthProvider struct {
 	currentUser AbstractUser
 }
 
+func NewJwtAuthProvider() *JWTAuthProvider {
+	return &JWTAuthProvider{}
+}
+
 func (a *JWTAuthProvider) GenerateToken(cred Credentials) (authToken string, err error) {
 	token, err := generateSignedJWT(cred)
 	if err != nil {

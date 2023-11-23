@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -11,6 +12,7 @@ import (
 	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5/pgxpool"
 	rtHelper "github.com/nurbekabilev/go-open-api/internal/fs"
 )
 
@@ -56,21 +58,12 @@ func getUpMigrationsFiles(migrationsPath string) []string {
 	return files
 }
 
-func SimpleMigrate(schemaName string) error {
-
+func SimpleMigrate(ctx context.Context, db *pgxpool.Pool, schemaName string) error {
 	migrationsPath := rtHelper.RootPath() + "/migrations"
-
 	files := getUpMigrationsFiles(migrationsPath)
 
-	db, err := InitDatabase()
-	if err != nil {
-		return fmt.Errorf("could not init db: %w", err)
-	}
-
-	schemaName = strings.ToLower(schemaName)
-
-	qr := fmt.Sprintf(`SET search_path TO %s`, schemaName)
-	_, err = db.Exec(qr)
+	sp := fmt.Sprintf(`SET search_path TO %s`, strings.ToLower(schemaName))
+	_, err := db.Exec(ctx, sp)
 	if err != nil {
 		return err
 	}
@@ -83,12 +76,10 @@ func SimpleMigrate(schemaName string) error {
 
 		migrationsQuery := string(contents)
 
-		_, err = db.Exec(migrationsQuery)
+		_, err = db.Exec(ctx, migrationsQuery)
 		if err != nil {
 			return err
 		}
-
-		// log.Printf("migrated %s", file)
 	}
 
 	return nil

@@ -4,16 +4,23 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/auth"
+	"github.com/nurbekabilev/go-open-api/internal/config"
+	"github.com/nurbekabilev/go-open-api/internal/db"
 	"github.com/nurbekabilev/go-open-api/test/util"
 )
 
@@ -43,18 +50,42 @@ func createMockAuth() auth.AuthProvider {
 	return MockAuth{}
 }
 
+var testConn *pgxpool.Pool
+
+func TestMain(m *testing.M) {
+	config.LoadDotEnv()
+
+	cfg, err := pgxpool.ParseConfig(os.Getenv("DB_URL"))
+	if err != nil {
+		log.Fatal("could not init connect")
+	}
+
+	conn, err := db.InitPgxConnect(context.TODO(), cfg)
+	if err != nil {
+		log.Fatalf("could not init testmain for handler: %v", err)
+	}
+	defer conn.Close()
+	testConn = conn
+
+	for i := 0; i < 100; i++ {
+		m.Run()
+	}
+
+	// exitCode := m.Run()
+	// os.Exit(exitCode)
+}
+
 func TestCreatePosition(t *testing.T) {
 	t.Parallel()
 
-	pgxConfig, tearDown := util.SetupSchemaForTesting(t)
+	tearDown := util.SetupSchemaForTesting(t, testConn)
 	defer tearDown()
 
-	appCloser, err := app.InitApp(app.AppConfig{
-		PgxConfig:    pgxConfig,
+	err := app.InitApp(app.AppConfig{
+		PgxCon:       testConn,
 		AuthProvider: createMockAuth(),
 	})
 	assert.NoError(t, err)
-	defer appCloser()
 
 	requestBody := struct {
 		Name   string `json:"name"`
@@ -110,15 +141,14 @@ func TestCreatePosition(t *testing.T) {
 func TestGetPosition(t *testing.T) {
 	t.Parallel()
 
-	pgxConfig, tearDown := util.SetupSchemaForTesting(t)
+	tearDown := util.SetupSchemaForTesting(t, testConn)
 	defer tearDown()
 
-	appCloser, err := app.InitApp(app.AppConfig{
-		PgxConfig:    pgxConfig,
+	err := app.InitApp(app.AppConfig{
+		PgxCon:       testConn,
 		AuthProvider: createMockAuth(),
 	})
 	assert.NoError(t, err)
-	defer appCloser()
 
 	ctx := context.Background()
 
@@ -158,5 +188,59 @@ func TestGetPosition(t *testing.T) {
 	err = json.Unmarshal(data, &rs)
 	assert.NoError(t, err)
 
-	assert.Equal(t, id, rs.Data.ID)
+	assert.Equal(t, id, rs.Data.ID, err, string(data))
+
+}
+
+func TestDeletePosition(t *testing.T) {
+	t.Parallel()
+
+	tearDown := util.SetupSchemaForTesting(t, testConn)
+	defer tearDown()
+
+	err := app.InitApp(app.AppConfig{
+		PgxCon:       testConn,
+		AuthProvider: createMockAuth(),
+	})
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+
+	var id int
+	const name = "Software Engineer"
+	const salary = 1000
+
+	err = app.DI().DB.QueryRow(ctx, "insert into positions (name, salary) values ($1, $2) returning id", name, salary).Scan(&id)
+	assert.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/positions/%d", id), nil)
+	w := httptest.NewRecorder()
+
+	m := GetRoutes()
+	m.ServeHTTP(w, r)
+
+	res := w.Result()
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	rs := struct {
+		Code     int    `json:"code"`
+		ErrorMsg string `json:"error"`
+	}{}
+
+	err = json.Unmarshal(data, &rs)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, rs.Code)
+	assert.Empty(t, rs.ErrorMsg)
+
+	err = app.DI().DB.QueryRow(ctx, "select id from positions where id = $1", id).Scan(&id)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatalf("could not delete with id = %d: %v", id, err)
+	}
+
 }

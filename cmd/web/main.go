@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	sw "github.com/flowchartsman/swaggerui"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	"github.com/nurbekabilev/go-open-api/internal/app"
 	"github.com/nurbekabilev/go-open-api/internal/config"
@@ -19,11 +21,21 @@ import (
 func main() {
 	config.LoadDotEnv()
 	db.Migrate(os.Getenv("DB_URL"))
-	closer, err := app.InitApp(app.AppConfig{})
+
+	cfg, err := pgxpool.ParseConfig(os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer closer()
+
+	conn, err := db.InitPgxConnect(context.Background(), cfg)
+	if err != nil {
+		log.Fatal("could not init connect %w", err)
+	}
+
+	err = app.InitApp(app.AppConfig{PgxCon: conn})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	http.Handle("/", handler.GetRoutes())
 	http.Handle("/api/swagger/", http.StripPrefix("/api/swagger", sw.Handler(swaggerui.GetSwaggerYml())))

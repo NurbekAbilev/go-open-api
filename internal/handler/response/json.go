@@ -50,13 +50,12 @@ func NewErrResponse(code int, errorMsg string) Response {
 	}
 }
 
-func NewServerError(errorMsg string) Response {
-	log.Println("Server error:", errorMsg)
-	return NewErrResponse(http.StatusInternalServerError, errorMsg)
+func NewServerError(err error) Response {
+	log.Printf("Server error: %v\n", err)
+	return NewErrResponse(http.StatusInternalServerError, "server error")
 }
 
 func NewNotFoundError(errorMsg string) Response {
-	log.Println("Server error:", errorMsg)
 	return NewErrResponse(http.StatusNotFound, errorMsg)
 }
 
