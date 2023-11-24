@@ -67,16 +67,16 @@ func TestMain(m *testing.M) {
 	defer conn.Close()
 	testConn = conn
 
-	for i := 0; i < 100; i++ {
-		m.Run()
-	}
+	// for i := 0; i < 100; i++ {
+	m.Run()
+	// }
 
 	// exitCode := m.Run()
 	// os.Exit(exitCode)
 }
 
 func TestCreatePosition(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tearDown := util.SetupSchemaForTesting(t, testConn)
 	defer tearDown()
@@ -139,7 +139,7 @@ func TestCreatePosition(t *testing.T) {
 }
 
 func TestGetPosition(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tearDown := util.SetupSchemaForTesting(t, testConn)
 	defer tearDown()
@@ -193,7 +193,7 @@ func TestGetPosition(t *testing.T) {
 }
 
 func TestDeletePosition(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tearDown := util.SetupSchemaForTesting(t, testConn)
 	defer tearDown()
