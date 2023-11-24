@@ -18,6 +18,10 @@ func GetRoutes() *mux.Router {
 	protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleDeletePosition).Methods("DELETE")
 
 	// Employees @todo
+	// protectedRoutes.HandleFunc("/api/v1/positions", HandleAddPosition).Methods("POST")
+	// protectedRoutes.HandleFunc("/api/v1/positions", HandleGetPositions).Methods("GET")
+	// protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleGetOnePosition).Methods("GET")
+	// protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleDeletePosition).Methods("DELETE")
 
 	// Auth routes
 	r.HandleFunc("/api/v1/signup", HandleSignUp).Methods("POST")

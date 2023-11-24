@@ -45,6 +45,111 @@ paths:
       #   - petstore_auth:
       #       - write:pets
       #       - read:pets
+  /api/v1/positions/{id}:
+    get:
+      tags:
+        - positions
+      summary: Get position by ID
+      operationId: getPositionById
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Position'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/Position'          
+  /api/v1/signup:
+    post:
+      tags:
+        - auth
+      summary: Sign Up by login/password
+      operationId: authSignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: login
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'signed up'
+  /api/v1/auth:
+    post:
+      tags:
+        - auth
+      summary: Authenticate using login password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: login
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: '{authorization_jwt_token}'
   /pet/findByStatus:
     get:
       tags:
