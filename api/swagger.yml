@@ -7,9 +7,9 @@ info:
 servers:
   - url: http://localhost:8080
 tags:
+  - name: auth
   - name: employees
   - name: positions
-  - name: auth
 paths:
   /api/v1/positions:
     post:
@@ -41,22 +41,21 @@ paths:
                     type: array
                     items: 
                       $ref: '#/components/schemas/Position'          
-      # security:
-      #   - petstore_auth:
-      #       - write:pets
-      #       - read:pets
+      security:
+        - jwt: []
   /api/v1/positions/{id}:
     get:
       tags:
         - positions
       summary: Get position by ID
       operationId: getPositionById
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Position'
-        required: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: '1'
       responses:
         '200':
           description: Success
@@ -75,6 +74,8 @@ paths:
                     type: array
                     items: 
                       $ref: '#/components/schemas/Position'          
+      security:
+        - ApiJwtAuth: []
   /api/v1/signup:
     post:
       tags:
@@ -165,11 +166,7 @@ paths:
           explode: true
           schema:
             type: string
-            default: available
-            enum:
-              - available
-              - pending
-              - sold
+            example: '1'
       responses:
         '200':
           description: successful operation
@@ -187,9 +184,7 @@ paths:
         '400':
           description: Invalid status value
       security:
-        - petstore_auth:
-            - write:pets
-            - read:pets
+        - petstore_auth: []
   /pet/findByTags:
     get:
       tags:
@@ -799,15 +794,7 @@ components:
             items:
               $ref: '#/components/schemas/User'
   securitySchemes:
-    petstore_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
-          scopes:
-            write:pets: modify pets in your account
-            read:pets: read your pets
-    api_key:
+    ApiJwtAuth:
       type: apiKey
-      name: api_key
       in: header
+      name: Authorization
