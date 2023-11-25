@@ -8,24 +8,19 @@ servers:
   - url: http://localhost:8080
 tags:
   - name: auth
-  - name: employees
   - name: positions
+  - name: employees
 paths:
   /api/v1/positions:
-    post:
+    get:
       tags:
         - positions
-      summary: Add new position
-      operationId: addNewPosition
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Position'
-        required: true
+      summary: Get positions list
+      security:
+        - ApiJwtAuth: []
       responses:
         '200':
-          description: Position created
+          description: Success
           content:
             application/json:
               schema:
@@ -41,8 +36,36 @@ paths:
                     type: array
                     items: 
                       $ref: '#/components/schemas/Position'          
+    post:
+      tags:
+        - positions
+      summary: Add new position
+      operationId: addNewPosition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Position'
+        required: true
       security:
-        - jwt: []
+        - ApiJwtAuth: []
+      responses:
+        '200':
+          description: Position created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: schema 
+                    $ref: '#/components/schemas/Position'          
   /api/v1/positions/{id}:
     get:
       tags:

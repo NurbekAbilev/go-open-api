@@ -12,9 +12,9 @@ func GetRoutes() *mux.Router {
 	protectedRoutes.Use(middleware.AuthMiddleware)
 
 	// Positions
-	protectedRoutes.HandleFunc("/api/v1/positions", HandleAddPosition).Methods("POST")
 	protectedRoutes.HandleFunc("/api/v1/positions", HandleGetPositions).Methods("GET")
 	protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleGetOnePosition).Methods("GET")
+	protectedRoutes.HandleFunc("/api/v1/positions", HandleAddPosition).Methods("POST")
 	protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleDeletePosition).Methods("DELETE")
 
 	// Employees @todo
