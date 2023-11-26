@@ -72,6 +72,8 @@ paths:
         - positions
       summary: Get position by ID
       operationId: getPositionById
+      security:
+        - ApiJwtAuth: []
       parameters:
         - name: id
           in: path
@@ -97,6 +99,34 @@ paths:
                     type: array
                     items: 
                       $ref: '#/components/schemas/Position'          
+    delete:
+      tags:
+        - positions
+      summary: Delete position by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: '1'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: object
+                    example: null
       security:
         - ApiJwtAuth: []
   /api/v1/signup:
