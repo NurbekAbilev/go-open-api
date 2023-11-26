@@ -17,9 +17,7 @@ import (
 
 func HandleAddPosition(w http.ResponseWriter, r *http.Request) {
 	di := app.DI()
-	ctx := r.Context()
-
-	rs := addPosition(ctx, di.PositionRepo, r)
+	rs := addPosition(r, di.PositionRepo)
 
 	response.WriteJsonResponse(w, rs)
 }
@@ -78,7 +76,7 @@ func getPositions(ctx context.Context, w http.ResponseWriter, r *http.Request) r
 	return response.NewOkResponse(pd)
 }
 
-func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *http.Request) response.Response {
+func addPosition(r *http.Request, createPosRepo repo.CreatePositionRepo) response.Response {
 	p := repo.Position{}
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
@@ -91,7 +89,7 @@ func addPosition(ctx context.Context, createPosRepo repo.CreatePositionRepo, r *
 		return response.NewBadRequestErrorResponse(err.Error())
 	}
 
-	id, err := createPosRepo.CreatePosition(ctx, p)
+	id, err := createPosRepo.CreatePosition(r.Context(), p)
 	if err != nil {
 		log.Printf("could not create position: %v", err)
 		return response.NewServerError(err)

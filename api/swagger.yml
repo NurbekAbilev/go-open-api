@@ -35,7 +35,7 @@ paths:
                   data:  
                     type: array
                     items: 
-                      $ref: '#/components/schemas/Position'          
+                      $ref: '#/components/schemas/Position'
     post:
       tags:
         - positions
@@ -65,7 +65,7 @@ paths:
                     example: ""
                   data:  
                     type: schema 
-                    $ref: '#/components/schemas/Position'          
+                    $ref: '#/components/schemas/Position'
   /api/v1/positions/{id}:
     get:
       tags:
@@ -204,6 +204,36 @@ paths:
                       token:
                         type: string
                         example: '{authorization_jwt_token}'
+  /api/v1/employees:
+    post:
+      tags:
+        - employees
+      summary: Create new employee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+        required: true
+      security:
+        - ApiJwtAuth: []
+      responses:
+        '200':
+          description: Position created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:  
+                  code: 
+                    type: integer
+                    example: 200
+                  error: 
+                    type: string
+                    example: ""
+                  data:  
+                    type: schema 
+                    $ref: '#/components/schemas/Employee'
   /pet/findByStatus:
     get:
       tags:
@@ -815,6 +845,25 @@ components:
           example: Sr. Software Engineer
         salary:
           type: integer
+          example: 1000
+        #        "id": "4",
+        # "first_name": "nurbek",
+        # "last_name": "abilev",
+        # "position_id": 51
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1'
+        first_name:
+          type: string
+          example: Ivan
+        last_name:
+          type: string
+          example: Ivanov
+        position_id:
+          type: string
           example: 1000
     ApiResponse:
       type: object

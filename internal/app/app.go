@@ -56,7 +56,7 @@ func initDI(pgxConn *pgxpool.Pool, authProvider auth.AuthProvider) {
 	}
 
 	singleton = &inj{
-		// EmployeeRepo: repo.NewEmployeeRepo(db),
+		EmployeeRepo: repo.NewEmployeeRepo(pgxConn),
 		PositionRepo: repo.NewPositionRepo(pgxConn),
 		UserRepo:     repo.NewUserRepo(pgxConn),
 		Auth:         auth,
