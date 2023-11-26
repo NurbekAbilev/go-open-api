@@ -33,6 +33,10 @@ type CreateEmployeeRepo interface {
 	CreateEmployee(ctx context.Context, empl Employee) (id string, err error)
 }
 
+type GetOneEmployeeByIDRepo interface {
+	GetEmployeeById(ctx context.Context, id string) (empl Employee, err error)
+}
+
 // User repo
 type CreateUserRepo interface {
 	CreateUser(ctx context.Context, user User) (string, error)

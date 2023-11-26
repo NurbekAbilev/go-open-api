@@ -26,7 +26,10 @@ func addEmployee(r *http.Request, createEmployeeRepo repo.CreateEmployeeRepo) re
 	if err != nil {
 		return response.NewServerError(err)
 	}
-	empl.ID = id
+	// @todo remove hardcode
+	// empl.ID = id
+	_ = id
+	empl.ID = 1
 
 	return response.NewOkResponse(empl)
 }

@@ -37,9 +37,10 @@ func (a *JWTAuthProvider) GenerateToken(cred Credentials) (authToken string, err
 }
 
 func (a *JWTAuthProvider) CheckAuth(authToken string) (err error) {
-	empl := repo.Employee{
-		ID:        "1",
-		FirstName: "Nurbek",
+	// @todo remove hardcode
+	empl := repo.User{
+		ID:    "1",
+		Login: "Nurbek",
 	}
 	a.currentUser = empl
 

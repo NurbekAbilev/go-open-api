@@ -38,3 +38,20 @@ func (r EmployeeRepo) CreateEmployee(ctx context.Context, empl Employee) (id str
 
 	return lastInsertId, nil
 }
+
+func (r EmployeeRepo) GetEmployeeById(ctx context.Context, id string) (empl Employee, err error) {
+	query := `
+		select id, first_name, last_name, position_id, updated_at, created_at from employees
+			where id = $1
+	`
+
+	err = r.db.QueryRow(ctx, query, id).Scan(
+		empl.ID, empl.FirstName, empl.LastName, empl.PositionID,
+		empl.UpdatedAt, empl.CreatedAt,
+	)
+	if err != nil {
+		return empl, err
+	}
+
+	return empl, nil
+}

@@ -27,8 +27,9 @@ import (
 type MockAuth struct{}
 type MockUser struct{}
 
-func (u MockUser) GetID() string {
-	return "1"
+func (u MockUser) GetID() int {
+	return 1
+	// return "1"
 }
 
 func (u MockUser) GetRole() string {

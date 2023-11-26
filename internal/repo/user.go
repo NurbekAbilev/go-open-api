@@ -9,8 +9,9 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (e User) GetID() string {
-	return e.ID
+func (e User) GetID() int {
+	return 1
+	// return e.ID
 }
 
 func (e User) GetRole() string {

@@ -12,7 +12,7 @@ var (
 )
 
 type AbstractUser interface {
-	GetID() string
+	GetID() int
 	GetRole() string
 }
 

@@ -20,7 +20,7 @@ func GetRoutes() *mux.Router {
 
 	// Employees @todo
 	protectedRoutes.HandleFunc("/api/v1/employees", employee.HandleAddEmployee).Methods("POST")
-	// protectedRoutes.HandleFunc("/api/v1/positions", HandleGetPositions).Methods("GET")
+	protectedRoutes.HandleFunc("/api/v1/employees/{id:[0-9]+}", employee.HandleGetEmployee).Methods("GET")
 	// protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleGetOnePosition).Methods("GET")
 	// protectedRoutes.HandleFunc("/api/v1/positions/{id:[0-9]+}", HandleDeletePosition).Methods("DELETE")
 
