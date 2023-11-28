@@ -29,7 +29,8 @@ func addEmployee(r *http.Request, createEmployeeRepo repo.CreateEmployeeRepo) re
 	// @todo remove hardcode
 	// empl.ID = id
 	_ = id
-	empl.ID = 1
+	// empl.ID = 1
+	empl.ID = "1"
 
 	return response.NewOkResponse(empl)
 }
