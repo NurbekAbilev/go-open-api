@@ -37,6 +37,10 @@ type GetOneEmployeeByIDRepo interface {
 	GetEmployeeById(ctx context.Context, id string) (empl Employee, err error)
 }
 
+type GetEmployeesPaginated interface {
+	GetEmployeesPaginated(ctx context.Context, pgReq pagination.PaginationRequest) (*pagination.PaginatedData[Employee], error)
+}
+
 // User repo
 type CreateUserRepo interface {
 	CreateUser(ctx context.Context, user User) (string, error)
