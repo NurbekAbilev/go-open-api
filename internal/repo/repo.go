@@ -41,6 +41,10 @@ type GetEmployeesPaginated interface {
 	GetEmployeesPaginated(ctx context.Context, pgReq pagination.PaginationRequest) (*pagination.PaginatedData[Employee], error)
 }
 
+type DeleteEmployeeByIDRepo interface {
+	DeleteEmpoyeeByID(ctx context.Context, ID string) error
+}
+
 // User repo
 type CreateUserRepo interface {
 	CreateUser(ctx context.Context, user User) (string, error)

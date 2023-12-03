@@ -90,3 +90,14 @@ func (r EmployeeRepo) GetEmployeesPaginated(ctx context.Context, pgReq paginatio
 
 	return &pdata, nil
 }
+
+func (r EmployeeRepo) DeleteEmpoyeeByID(ctx context.Context, ID string) error {
+	query := "delete from employees where id = $1"
+
+	_, err := r.db.Exec(ctx, query, ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
